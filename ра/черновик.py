@@ -1,43 +1,44 @@
-import sys
-from PyQt6.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout
-from PyQt6.QtCore import Qt
+import sqlite3
 
-class ExerciseApp(QWidget):
-    def init(self):
-        super().init()
-        self.init_ui()
+DB_MAME = "my_books.db"
 
-    def init_ui(self):
-        self.setWindowTitle("Приложение-упражнение")
-        self.setFixedSize(400, 300)
+def get_connection():
+    return sqlite3.connect(DB_MAME)
 
+def create_tables():
+    with get_connection() as conn:
+        cur = conn.cursor()
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                author TEXT NOT NULL,
+                year INTEGER
+            )
+        """)
+
+from database.db import get_connection
+
+def add_book(title, author, year):
+    with get_connection() as conn:
+        cur = conn.cursor()
+        cur.execute("INSERT INTO books (title, author, year) VALUES(?,?,?)",(title,author,year))
+        conn.commit() 
+
+def get_all_books():
+        with get_connection() as conn:
+            rut = conn.cursor()
+            rut.execute("SELECT id, title, author, year FROM books")
+            return rut.fetchall()
         
-        self.label = QLabel("Ожидаю действий...", self)
-        self.label.setWordWrap(True)  
-        self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+from database.books import get_all_books,add_book
+from database.db import create_tables,get_connection
+create_tables()
 
-        
-        self.hello_btn = QPushButton("Привет")
-        self.bye_btn = QPushButton("Пока")
-        self.hello_btn.clicked.connect(self.say_hello)
-        self.bye_btn.clicked.connect(self.say_bye)
-        button_layout = QHBoxLayout()
-        button_layout.addWidget(self.hello_btn)
-        button_layout.addWidget(self.bye_btn)
-        main_layout = QVBoxLayout()
-        main_layout.addWidget(self.label)
-        main_layout.addLayout(button_layout)
 
-        self.setLayout(main_layout)
+add_book("btrw","bwrbt",24)
+add_book("vwvw","vew",24)
 
-    def say_hello(self):
-        self.label.setText("Привет, пользователь!")
-
-    def say_bye(self):
-        self.label.setText("До свидания!")
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = ExerciseApp()
-    window.show()
-    sys.exit(app.exec())
+print("все книги ")
+for books in get_all_books:
+    print(books)
