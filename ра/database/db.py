@@ -16,3 +16,4 @@ def create_tables():
                 year INTEGER
             )
         """)
+
