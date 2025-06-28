@@ -37,7 +37,7 @@ from PyQt6.QtWidgets import (
     QApplication, QWidget, QLabel, QLineEdit,
     QPushButton, QVBoxLayout, QTextEdit
 )
-from ра.database.databases import init_db, add_person, get_all_people, delete_person, edit_person
+from ра.databases import init_db, add_person, get_all_people, delete_person, edit_person
 
 class MainWindow(QWidget):
     def __init__(self):
