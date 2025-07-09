@@ -30,7 +30,6 @@ class PeopleApp(QWidget):
     def init_ui(self):
         layout = QVBoxLayout()
 
-        # Вводные поля
         self.id_input = QLineEdit()
         self.id_input.setPlaceholderText("ID")
         self.name_input = QLineEdit()
@@ -42,7 +41,6 @@ class PeopleApp(QWidget):
         layout.addWidget(self.name_input)
         layout.addWidget(self.age_input)
 
-        # Кнопки
         self.add_button = QPushButton("Добавить человека")
         self.add_button.clicked.connect(self.add_person)
 
@@ -60,7 +58,6 @@ class PeopleApp(QWidget):
         layout.addWidget(self.delete_button)
         layout.addWidget(self.edit_button)
 
-        # Список
         self.people_list = QListWidget()
         layout.addWidget(self.people_list)
 
