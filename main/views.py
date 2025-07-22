@@ -1,4 +1,8 @@
 from django.shortcuts import render
+from django.views.generic import CreateView
+from django.urls import reverse_lazy
+from main.models import Product
+from main.forms import ProductForm
 
 # Create your views here.
 def index(request):
@@ -126,4 +130,9 @@ gsmarena.com
         'description5': 'Logitech G Pro X Superlight 2 — топовая игровая мышь весом всего 60 г, с сенсором HERO 2 (до 32 000 DPI), частотой отклика 2000 Гц и сверхточным отслеживанием. Беспроводная, с низкой задержкой и отличной эргономикой — идеальна для киберспорта.',
     }
     return render(request, 'index.html', context=context)
- 
+
+class ProductCreateView(CreateView):
+        template_name = 'create.html'
+        model = Product
+        form_class = ProductForm
+        success_url = reverse_lazy('index')
