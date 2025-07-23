@@ -1,30 +1,95 @@
 <!DOCTYPE html>
-<html lang="en"> 
+<html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geeks</title>
-</head>
-<body>
-  
-        <title>{{title}}</title>
-       <img src={{image}} width="200px" height="200px" alt="" >
-        <p>{{description}}</p>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Geeks Shop</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
 
-        <title>{{title1}}</title>
-       <img src={{image1}} width="200px" height="200px" alt="" >
-        <p>{{description1}}</p>
-        <title>{{title2}}</title>
-       <img src={{image2}} width="200px" height="200px" alt="" >
-        <p>{{description2}}</p>
-        <title>{{title3}}</title>
-         <img src={{image3}} width="200px" height="200px" alt="" >
-        <p>{{description3}}</p>
-        <title>{{title4}}</title>
-         <img src={{image4}} width="200px" height="200px" alt="" >
-        <p>{{description4}}</p>
-        <title>{{title5}}</title>
-         <img src={{image5}} width="200px" height="200px" alt="" >
-        <p>{{description5}}</p>
+    .product-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .product-card {
+      width: 250px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      transition: transform 0.2s ease;
+    }
+
+    .product-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .product-image {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
+
+    .product-details {
+      padding: 15px;
+    }
+
+    .product-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .product-price {
+      color: #28a745;
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    .product-description {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 15px;
+    }
+
+    .product-button {
+      display: inline-block;
+      background-color: #007bff;
+      color: white;
+      padding: 8px 12px;
+      text-decoration: none;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+
+    .product-button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>🛒 Каталог товаров Geeks</h1>
+
+  <div class="product-container">
+    {% for product in products %}
+    <div class="product-card">
+      <img class="product-image" src="{{ productS.image.url }}" alt="{{ products.title }}">
+      <div class="product-details">
+        <div class="product-title">{{ product.title }}</div>
+        <div class="product-price">{{ product.price }} ₽</div>
+        <div class="product-description">
+          {{ product.description|truncatewords:15 }}
+        </div>
+        {% comment %} <a href="{% url 'product_detail' product.id %}" class="product-button">Подробнее</a> {% endcomment %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
 </body>
 </html>
