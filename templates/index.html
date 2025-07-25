@@ -77,14 +77,14 @@
   <h1>🛒 Каталог товаров Geeks</h1>
 
   <div class="product-container">
-    {% for product in products %}
+    {% for products in product %}
     <div class="product-card">
-      <img class="product-image" src="{{ productS.image.url }}" alt="{{ products.title }}">
+      <img class="product-image" src="{{ products.image.url }}" alt="{{ products.title }}">
       <div class="product-details">
-        <div class="product-title">{{ product.title }}</div>
-        <div class="product-price">{{ product.price }} ₽</div>
+        <div class="product-title">{{ products.title }}</div>
+        <div class="product-price">{{ products.price }} ₽</div>
         <div class="product-description">
-          {{ product.description|truncatewords:15 }}
+          {{ products.description|truncatewords:15 }}
         </div>
         {% comment %} <a href="{% url 'product_detail' product.id %}" class="product-button">Подробнее</a> {% endcomment %}
       </div>
