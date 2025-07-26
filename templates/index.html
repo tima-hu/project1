@@ -10,6 +10,10 @@
       padding: 20px;
     }
 
+    form {
+      margin-bottom: 30px;
+    }
+
     .product-container {
       display: flex;
       flex-wrap: wrap;
@@ -76,19 +80,28 @@
 <body>
   <h1>🛒 Каталог товаров Geeks</h1>
 
+  <!-- 🔍 Форма фильтра -->
+  <form method="get">
+    {{ product_filter.form.as_p }}
+    <button type="submit">Поиск</button>
+  </form>
+
+  <!-- 🖼 Карточки товаров -->
   <div class="product-container">
-    {% for products in product %}
+    {% for products in product_filter.qs %}
     <div class="product-card">
       <img class="product-image" src="{{ products.image.url }}" alt="{{ products.title }}">
       <div class="product-details">
         <div class="product-title">{{ products.title }}</div>
-        <div class="product-price">{{ products.price }} ₽</div>
+        <div class="product-price">{{ products.price }} сом</div>
         <div class="product-description">
           {{ products.description|truncatewords:15 }}
         </div>
-        {% comment %} <a href="{% url 'product_detail' product.id %}" class="product-button">Подробнее</a> {% endcomment %}
+        <a href="{% url 'product_detail' products.id %}" class="product-button">Подробнее</a>
       </div>
     </div>
+    {% empty %}
+      <p>Товары не найдены.</p>
     {% endfor %}
   </div>
 </body>

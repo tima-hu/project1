@@ -1,8 +1,9 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.views.generic import CreateView
 from django.urls import reverse_lazy
 from main.models import Product
 from main.forms import ProductForm
+from main.filters import ProductFilters
 
 # Create your views here.
 # def index(request):
@@ -136,9 +137,13 @@ from main.forms import ProductForm
 
 def index(request):
         product = Product.objects.all()
+        product_filter = ProductFilters(request.GET, queryset=product)
         return render(request, 'index.html', locals())
 
 
+def product_detail(request, id):
+    product=get_object_or_404(Product, id=id)
+    return render(request, 'product_detail.html', locals())
 
 
 class ProductCreateView(CreateView):
