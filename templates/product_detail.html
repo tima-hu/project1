@@ -4,95 +4,64 @@
   <meta charset="UTF-8" />
   <title>{{ product.title }} | Geeks Shop</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 40px;
-      background-color: #f9f9f9;
-    }
-
-    .product-wrapper {
-      max-width: 900px;
-      margin: auto;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 30px;
-      background-color: #fff;
-      padding: 30px;
-      border-radius: 15px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    }
-
-    .product-image {
-      flex: 1 1 350px;
+    .product-image-main {
       max-width: 400px;
-      height: auto;
-      border-radius: 10px;
-      object-fit: cover;
+      max-height: 400px;
+      object-fit: contain;
       border: 1px solid #ddd;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      display: block;
     }
-
-    .product-info {
-      flex: 1 1 400px;
+    .thumbnails {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
     }
-
-    .product-title {
-      font-size: 28px;
-      font-weight: bold;
-      margin-bottom: 15px;
-    }
-
-    .product-price {
-      font-size: 22px;
-      color: #28a745;
-      margin-bottom: 20px;
-    }
-
-    .product-description {
-      font-size: 16px;
-      color: #333;
-      line-height: 1.6;
-      margin-bottom: 25px;
-    }
-
-    .back-link {
-      display: inline-block;
-      margin-top: 20px;
-      text-decoration: none;
-      color: #007bff;
-      font-size: 15px;
-    }
-
-    .back-link:hover {
-      text-decoration: underline;
-    }
-
-    .buy-button {
-      display: inline-block;
-      background-color: #007bff;
-      color: white;
-      padding: 10px 16px;
-      text-decoration: none;
+    .thumbnail {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border: 2px solid transparent;
       border-radius: 5px;
-      font-size: 16px;
-      transition: background-color 0.2s ease;
+      cursor: pointer;
+      transition: border-color 0.2s ease;
     }
-
-    .buy-button:hover {
-      background-color: #0056b3;
+    .thumbnail.active {
+      border-color: #007bff;
     }
-
   </style>
 </head>
 <body>
-  <div class="product-wrapper">
-    <img class="product-image" src="{{ product.image.url }}" alt="{{ product.title }}">
-    <div class="product-info">
-      <div class="product-title">{{ product.title }}</div>
-      <div class="product-price">{{ product.price }} сом</div>
-      <div class="product-description">{{ product.description }}</div>
-      <a href="#" class="buy-button">Купить</a><br>
-      <a href="/" class="back-link">← Назад к каталогу</a>
-    </div>
-  </div>
+
+<h1>{{ product.title }}</h1>
+
+<!-- Основное изображение -->
+<img id="mainImage" class="product-image-main" 
+     src="{% if product.images.all.exists %}{{ product.images.first.image.url }}{% else %}{{ product.image.url }}{% endif %}" 
+     alt="{{ product.title }}">
+
+<!-- Миниатюры -->
+<div class="thumbnails">
+  {% if product.images.all.exists %}
+    {% for img in product.images.all %}
+      <img src="{{ img.image.url }}" alt="Фото {{ forloop.counter }}" 
+           class="thumbnail {% if forloop.first %}active{% endif %}" 
+           onclick="switchImage(this)">
+    {% endfor %}
+  {% else %}
+    <img src="{{ product.image.url }}" alt="{{ product.title }}" class="thumbnail active" onclick="switchImage(this)">
+  {% endif %}
+</div>
+
+<script>
+  function switchImage(el) {
+    const mainImage = document.getElementById('mainImage');
+    mainImage.src = el.src;
+    document.querySelectorAll('.thumbnail').forEach(img => img.classList.remove('active'));
+    el.classList.add('active');
+  }
+</script>
+
 </body>
 </html>
