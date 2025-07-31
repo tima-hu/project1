@@ -1,23 +1,18 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.views.generic import CreateView
-from django.urls import reverse_lazy
-from main.models import Product
-from main.forms import ProductForm
-from main.filters import ProductFilters
-from django.shortcuts import render, redirect
+from django.http import JsonResponse
+from .models import Product
 from .forms import ProductForm, ProductImageFormSet
-
-# Create your views here.
+from .filters import ProductFilters
+from django.views.decorators.http import require_POST
 
 def index(request):
     product = Product.objects.all()
     product_filter = ProductFilters(request.GET, queryset=product)
-    return render(request, 'index.html', locals())
+    return render(request, 'index.html', {'product_filter': product_filter})
 
 def product_detail(request, id):
     product = get_object_or_404(Product, id=id)
-    return render(request, 'product_detail.html', locals())
-
+    return render(request, 'product_detail.html', {'product': product})
 
 def product_create_view(request):
     if request.method == 'POST':
@@ -27,11 +22,10 @@ def product_create_view(request):
             product = form.save()
             formset.instance = product
             formset.save()
-            return redirect('index')  # Или куда нужно после создания
+            return redirect('product_detail', id=product.id)
     else:
         form = ProductForm()
         formset = ProductImageFormSet()
-
     return render(request, 'create.html', {'form': form, 'formset': formset})
 
 def cart_view(request):
@@ -42,50 +36,50 @@ def cart_view(request):
     for product_id, quantity in cart.items():
         try:
             product = Product.objects.get(id=product_id)
+            total = product.price * quantity
+            cart_items.append({
+                'product': product,
+                'quantity': quantity,
+                'total': total
+            })
+            total_price += total
         except Product.DoesNotExist:
-            continue  # если товар удалён — пропускаем
-        item_total = product.price * quantity
-        total_price += item_total
-        cart_items.append({
-            'product': product,
-            'quantity': quantity,
-            'total': item_total
-        })
+            continue
 
-    context = {
+    return render(request, 'cart.html', {
         'cart_items': cart_items,
         'total_price': total_price
-    }
-    return render(request, 'cart.html', context)
+    })
 
 def add_to_cart(request, product_id):
     product = get_object_or_404(Product, id=product_id)
-
     cart = request.session.get('cart', {})
-    cart[str(product_id)] = cart.get(str(product_id), 0) + 1
+    product_id_str = str(product_id)
+    cart[product_id_str] = cart.get(product_id_str, 0) + 1
     request.session['cart'] = cart
-
+    request.session.modified = True
     return redirect('cart')
 
+@require_POST
 def remove_from_cart(request, product_id):
-    if request.method == 'POST':
-        cart = request.session.get('cart', {})
-        product_id_str = str(product_id)
-        if product_id_str in cart:
-            del cart[product_id_str]
-            request.session['cart'] = cart
+    cart = request.session.get('cart', {})
+    product_id_str = str(product_id)
+    if product_id_str in cart:
+        del cart[product_id_str]
+        request.session['cart'] = cart
+        request.session.modified = True
     return redirect('cart')
-def product_create_view(request):
-    if request.method == 'POST':
-        form = ProductForm(request.POST)
-        formset = ProductImageFormSet(request.POST, request.FILES)
-        if form.is_valid() and formset.is_valid():
-            product = form.save()
-            formset.instance = product
-            formset.save()
-            return redirect('index')  # или куда нужно
-    else:
-        form = ProductForm()
-        formset = ProductImageFormSet()
 
-    return render(request, 'create.html', {'form': form, 'formset': formset})
+@require_POST
+def checkout_view(request):
+    request.session['cart'] = {}
+    request.session.modified = True
+    return redirect('cart')
+
+def live_search(request):
+    query = request.GET.get('q', '')
+    results = []
+    if query:
+        matches = Product.objects.filter(title__icontains=query).order_by('title')[:10]
+        results = [{'id': p.id, 'name': p.title, 'price': p.price} for p in matches]
+    return JsonResponse({'results': results})
