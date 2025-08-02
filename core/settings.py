@@ -69,11 +69,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-# База данных (SQLite по умолчанию)
+# База данных (PostgreSQL)
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',          # имя базы данных из pgAdmin
+        'USER': 'postgres',      # имя пользователя PostgreSQL
+        'PASSWORD': 'tima62507',  # пароль
+        'HOST': '127.0.0.1',  # или 'localhost'
+        'PORT': '5432',
+
     }
 }
 
@@ -103,3 +108,10 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 # Первичный ключ
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+
+# Но можешь добавить отладочные принты:
+print("BASE_DIR:", BASE_DIR)
+print("DEBUG:", DEBUG)
+print("Loading templates from:", BASE_DIR / 'templates')
