@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}Магазин{% endblock %}</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    /* минимум стилей для демонстрации */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    a {
+      color: #007bff;
+      text-decoration: none;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+    }
+    #cart-count {
+      font-weight: bold;
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+<header>
+  <div>
+    <a href="{% url 'product_list' %}">🏬 Мой магазин</a>
+  </div>
+  <div class="header-right">
+    <a href="{% url 'cart_detail' %}">
+      🛒 Корзина (
+      <span id="cart-count">
+        {% if request.session.cart %}
+          {{ request.session.cart|length }}
+        {% else %}
+          0
+        {% endif %}
+      </span>
+      )
+    </a>
+
+    {% if user.is_authenticated %}
+      <span>Привет, {{ user.username }}!</span>
+      <a href="{% url 'logout' %}">Выйти</a>
+    {% else %}
+      <a href="{% url 'login' %}">Войти</a> |
+      <a href="{% url 'register' %}">Регистрация</a>
+    {% endif %}
+  </div>
+</header>
+
+<div class="container">
+  {% block content %}{% endblock %}
+</div>
+
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

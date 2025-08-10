@@ -1,53 +1,63 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8" />
-  <title>Корзина</title>
-  <style>
-    /* Стили по желанию */
-  </style>
-</head>
-<body>
-  <h1>Ваша корзина</h1>
+{% extends "base.html" %}
+{% block content %}
+<h1>Корзина</h1>
 
-  {% if cart_items %}
-  <table>
-    <thead>
-      <tr>
-        <th>Товар</th>
-        <th>Количество</th>
-        <th>Цена за шт.</th>
-        <th>Итого</th>
-        <th>Удалить</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for item in cart_items %}
-      <tr>
-        <td>{{ item.product.title }}</td>
-        <td>{{ item.quantity }}</td>
-        <td>{{ item.product.price }} сом</td>
-        <td>{{ item.total }} сом</td>
-        <td>
-          <form method="post" action="{% url 'remove_from_cart' item.product.id %}">
-            {% csrf_token %}
-            <button type="submit">Удалить</button>
-          </form>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  <p><strong>Общая сумма: {{ total_price }} сом</strong></p>
-  <form method="post" action="{% url 'checkout' %}">
-    {% csrf_token %}
-    <button type="submit">Оформить заказ</button>
-  </form>
+{% if cart_items %}
+<table style="width:100%;border-collapse:collapse">
+  <thead>
+    <tr><th>Товар</th><th>Цена</th><th>Кол-во</th><th>Итого</th><th>Действие</th></tr>
+  </thead>
+  <tbody>
+    {% for item in cart_items %}
+    <tr>
+      <td><a href="{% url 'product_detail' item.product.id %}">{{ item.product.title }}</a></td>
+      <td>{{ item.price }} сом</td>
+      <td>{{ item.quantity }}</td>
+      <td>{{ item.total_price }} сом</td>
+      <td>
+        <button class="remove-btn" data-id="{{ item.product.id }}">Удалить</button>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
 
-  {% else %}
-  <p>Ваша корзина пуста.</p>
-  {% endif %}
+<p><strong>Итого: {{ total_price }} сом</strong></p>
 
-  <p><a href="{% url 'index' %}">← Вернуться к товарам</a></p>
-</body>
-</html>
+<form method="post" action="{% url 'checkout' %}">
+  {% csrf_token %}
+  <button type="submit" class="button">Оформить заказ</button>
+</form>
+
+{% else %}
+<p>Ваша корзина пуста.</p>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+document.querySelectorAll('.remove-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const id = this.dataset.id;
+    fetch("{% url 'cart_remove_ajax' 0 %}".replace('/0/', '/' + id + '/'), {
+      method: 'POST',
+      headers: {'X-CSRFToken': getCookie('csrftoken')}
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        location.reload();
+      } else {
+        alert('Ошибка удаления');
+      }
+    });
+  });
+});
+</script>
+{% endblock %}

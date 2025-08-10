@@ -9,13 +9,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 # ⚙️ Включай True при разработке, False — на сервере
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = [
-    '127.0.0.1',
-    'localhost',
-    'Tima62507.pythonanywhere.com',
-]
+ALLOWED_HOSTS = ['Tima62507.pythonanywhere.com']
 
 # Безопасность для CSRF и сессий (HTTPS на проде)
 CSRF_COOKIE_SECURE = not DEBUG
@@ -36,6 +32,7 @@ INSTALLED_APPS = [
 
     'main',
     'django_filters',
+    'users',
 ]
 
 # Middleware
@@ -73,7 +70,7 @@ WSGI_APPLICATION = 'core.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',          # имя базы данных из pgAdmin
+        'NAME': 'project',          # имя базы данных из pgAdmin
         'USER': 'postgres',      # имя пользователя PostgreSQL
         'PASSWORD': 'tima62507',  # пароль
         'HOST': '127.0.0.1',  # или 'localhost'
@@ -109,9 +106,7 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 # Первичный ключ
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/users/login/'
 
 
-# Но можешь добавить отладочные принты:
-print("BASE_DIR:", BASE_DIR)
-print("DEBUG:", DEBUG)
-print("Loading templates from:", BASE_DIR / 'templates')

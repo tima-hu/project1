@@ -1,67 +1,39 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8" />
-  <title>{{ product.title }} | Geeks Shop</title>
-  <style>
-    .product-image-main {
-      max-width: 400px;
-      max-height: 400px;
-      object-fit: contain;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      margin-bottom: 10px;
-      display: block;
-    }
-    .thumbnails {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .thumbnail {
-      width: 60px;
-      height: 60px;
-      object-fit: cover;
-      border: 2px solid transparent;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: border-color 0.2s ease;
-    }
-    .thumbnail.active {
-      border-color: #007bff;
-    }
-  </style>
-</head>
-<body>
-
+{% extends "base.html" %}
+{% block content %}
 <h1>{{ product.title }}</h1>
+<img src="{% if product.image %}{{ product.image.url }}{% else %}https://via.placeholder.com/400x300?text=No+image{% endif %}" style="max-width:400px;display:block;margin-bottom:12px;">
+<p>{{ product.description|linebreaks }}</p>
+<p style="font-weight:bold">{{ product.price }} сом</p>
 
-<!-- Основное изображение -->
-<img id="mainImage" class="product-image-main" 
-     src="{% if product.images.all.exists %}{{ product.images.first.image.url }}{% else %}{{ product.image.url }}{% endif %}" 
-     alt="{{ product.title }}">
-
-<!-- Миниатюры -->
-<div class="thumbnails">
-  {% if product.images.all.exists %}
-    {% for img in product.images.all %}
-      <img src="{{ img.image.url }}" alt="Фото {{ forloop.counter }}" 
-           class="thumbnail {% if forloop.first %}active{% endif %}" 
-           onclick="switchImage(this)">
-    {% endfor %}
-  {% else %}
-    <img src="{{ product.image.url }}" alt="{{ product.title }}" class="thumbnail active" onclick="switchImage(this)">
-  {% endif %}
-</div>
+<form id="detail-add" data-id="{{ product.id }}">
+  {% csrf_token %}
+  <label>Количество: <input type="number" name="quantity" value="1" min="1" style="width:60px"></label>
+  <button type="submit" class="button">Добавить в корзину</button>
+</form>
 
 <script>
-  function switchImage(el) {
-    const mainImage = document.getElementById('mainImage');
-    mainImage.src = el.src;
-    document.querySelectorAll('.thumbnail').forEach(img => img.classList.remove('active'));
-    el.classList.add('active');
-  }
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+}
+document.getElementById('detail-add').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const productId = this.dataset.id;
+  const formData = new FormData(this);
+  fetch("{% url 'cart_add_ajax' 0 %}".replace('/0/', '/' + productId + '/'), {
+    method: 'POST',
+    headers: {'X-CSRFToken': getCookie('csrftoken')},
+    body: formData
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      const cartCount = document.getElementById('cart-count');
+      if (cartCount) cartCount.textContent = data.cart_count;
+      alert('Добавлено в корзину');
+    } else { alert('Ошибка'); }
+  });
+});
 </script>
-
-</body>
-</html>
+{% endblock %}
