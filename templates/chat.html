@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Чат сообщества</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f6fa;
+            margin: 0;
+            padding: 0;
+        }
+
+        .chat-container {
+            max-width: 700px;
+            margin: 30px auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 80vh;
+        }
+
+        h2 {
+            text-align: center;
+            color: #222;
+            margin-bottom: 15px;
+        }
+
+        #chat-log {
+            flex-grow: 1;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            padding: 10px;
+            background: #fafafa;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+
+        .message {
+            padding: 8px 10px;
+            margin-bottom: 6px;
+            border-radius: 6px;
+            max-width: 80%;
+            word-wrap: break-word;
+            background-color: #e9e9e9;
+        }
+
+        .my-message {
+            background-color: #4a90e2;
+            color: #fff;
+            margin-left: auto;
+        }
+
+        .system-message {
+            text-align: center;
+            font-style: italic;
+            color: gray;
+            margin: 10px 0;
+        }
+
+        .chat-input-container {
+            display: flex;
+            gap: 8px;
+        }
+
+        #chat-message-input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        #chat-message-submit {
+            padding: 10px 16px;
+            background-color: #4a90e2;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.2s;
+        }
+
+        #chat-message-submit:hover {
+            background-color: #357ab8;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <h2>💬 Чат сообщества</h2>
+        <div id="chat-log"></div>
+
+        <div class="chat-input-container">
+            <input id="chat-message-input" type="text" placeholder="Введите сообщение..." autocomplete="off">
+            <button id="chat-message-submit">Отправить</button>
+        </div>
+    </div>
+
+    <script>
+        const chatLog = document.querySelector("#chat-log");
+        const chatInput = document.querySelector("#chat-message-input");
+        const chatSubmit = document.querySelector("#chat-message-submit");
+
+        // Если пользователь авторизован — используем его имя, иначе "Гость"
+        const username = "{{ request.user.username|default:'Гость' }}";
+
+        // Подключение WebSocket
+        const chatSocket = new WebSocket(
+            "ws://" + window.location.host + "/ws/chat/"
+        );
+
+        // Получаем сообщение от сервера
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            const message = data.message;
+            const username = data.username;
+
+            messages.innerHTML += `<p><b>${username}:</b> ${message}</p>`;
+};
+        // Обработка закрытия соединения
+        chatSocket.onclose = function(e) {
+            addSystemMessage("🔌 Соединение закрыто");
+        };
+
+        // Отправка сообщения
+        chatSubmit.onclick = sendMessage;
+        chatInput.addEventListener("keypress", function(e) {
+            if (e.key === "Enter") {
+                sendMessage();
+            }
+        });
+
+        function sendMessage() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            chatSocket.send(JSON.stringify({
+                "message": message,
+                "username": username
+            }));
+
+            chatInput.value = "";
+        }
+
+        // Добавляем сообщение в чат
+        function addMessage(user, message) {
+            const msgDiv = document.createElement("div");
+            msgDiv.classList.add("message");
+
+            if (user === username) {
+                msgDiv.classList.add("my-message");
+            }
+
+            msgDiv.innerHTML = `<strong>${user}:</strong> ${message}`;
+            chatLog.appendChild(msgDiv);
+            chatLog.scrollTop = chatLog.scrollHeight;
+        }
+
+        // Системные сообщения
+        function addSystemMessage(text) {
+            const msgDiv = document.createElement("div");
+            msgDiv.classList.add("system-message");
+            msgDiv.textContent = text;
+            chatLog.appendChild(msgDiv);
+        }
+    </script>
+</body>
+</html>

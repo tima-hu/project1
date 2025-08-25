@@ -1,0 +1,116 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Редактирование профиля</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        form label {
+            display: block;
+            font-weight: bold;
+            margin-top: 12px;
+        }
+
+        form input[type="text"],
+        form input[type="email"],
+        form input[type="file"],
+        form input[type="password"] {
+            width: 100%;
+            padding: 8px 10px;
+            margin-top: 6px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        .avatar-preview {
+            display: block;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0 auto 12px auto;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            background: #007bff;
+            color: #fff;
+            font-size: 14px;
+            margin-top: 16px;
+            transition: 0.2s;
+        }
+
+        .btn:hover {
+            opacity: 0.85;
+            transform: translateY(-2px);
+        }
+
+        .btn-back {
+            background: #6c757d;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Редактирование профиля</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <img src="{{ user.profile.avatar.url|default:'https://via.placeholder.com/100' }}" alt="Аватар" class="avatar-preview">
+
+        <label for="avatar">Аватар</label>
+        <input type="file" name="avatar" id="avatar">
+
+        <label for="first_name">Имя</label>
+        <input type="text" name="first_name" id="first_name" value="{{ user.first_name }}">
+
+        <label for="last_name">Фамилия</label>
+        <input type="text" name="last_name" id="last_name" value="{{ user.last_name }}">
+
+        <label for="email">Email</label>
+        <input type="email" name="email" id="email" value="{{ user.email }}">
+
+        <label for="phone">Телефон</label>
+        <input type="text" name="phone" id="phone" value="{{ user.profile.phone|default:'' }}">
+
+        <label for="password">Пароль (оставьте пустым, если не меняете)</label>
+        <input type="password" name="password" id="password">
+
+        <div style="text-align: center;">
+            <button type="submit" class="btn">Сохранить изменения</button>
+            <a href="{% url 'profile_edit' %}" class="btn btn-back">Назад</a>
+        </div>
+    </form>
+</div>
+
+</body>
+</html>

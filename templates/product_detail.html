@@ -17,6 +17,7 @@ function getCookie(name) {
   const parts = value.split(`; ${name}=`);
   if (parts.length === 2) return parts.pop().split(';').shift();
 }
+
 document.getElementById('detail-add').addEventListener('submit', function(e) {
   e.preventDefault();
   const productId = this.dataset.id;
@@ -31,8 +32,10 @@ document.getElementById('detail-add').addEventListener('submit', function(e) {
     if (data.success) {
       const cartCount = document.getElementById('cart-count');
       if (cartCount) cartCount.textContent = data.cart_count;
-      alert('Добавлено в корзину');
-    } else { alert('Ошибка'); }
+      showToast('Добавлено в корзину');  // Заменили alert на showToast
+    } else {
+      showToast('Ошибка');
+    }
   });
 });
 </script>

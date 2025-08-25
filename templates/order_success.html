@@ -1,0 +1,83 @@
+{% load math_filters %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Заказ успешно оформлен</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: green;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background: #f0f0f0;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #007bff;
+            text-decoration: none;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>✅ Заказ успешно оформлен!</h1>
+    <p>Номер заказа: <strong>{{ order.id }}</strong></p>
+    <p>Дата оформления: <strong>{{ order.created_at|date:"d.m.Y H:i" }}</strong></p>
+
+    <h2>Состав заказа:</h2>
+    <table>
+        <tr>
+            <th>Товар</th>
+            <th>Продавец</th>
+            <th>Количество</th>
+            <th>Цена за шт.</th>
+            <th>Общая сумма</th>
+        </tr>
+        {% for item in items %}
+        <tr>
+            <td>{{ item.product.name }}</td>
+            <td>{{ item.product.seller.username }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ item.price }} ₽</td>
+            <td>{{ item.quantity|mul:item.price }} ₽</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h3>Итого: {{ order.total_price }} ₽</h3>
+
+    <a href="{% url 'product_list' %}" class="back-link">← Вернуться в магазин</a>
+</div>
+</body>
+</html>

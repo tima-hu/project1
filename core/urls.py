@@ -7,6 +7,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include("main.urls")),
     path('users/', include('users.urls')),
+    path('auth/', include('social_django.urls', namespace='social')),
+
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

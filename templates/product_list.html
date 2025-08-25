@@ -1,12 +1,76 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Каталог{% endblock %}
 
 {% block extra_head %}
 <style>
-.product-grid { display:flex; flex-wrap:wrap; gap:16px; }
-.card { width: 220px; border:1px solid #eee; padding:10px; border-radius:8px; background:#fff; }
-.card img { width:100%; height:140px; object-fit:cover; border-radius:6px; margin-bottom:8px; }
-.button { background:#007bff;color:#fff;padding:8px 10px;border:none;border-radius:6px;cursor:pointer }
+  .product-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .card {
+    width: 220px;
+    border: 1px solid #eee;
+    padding: 10px;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    transition: 0.2s ease-in-out;
+  }
+  .card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+  }
+  .card img {
+    width: 100%;
+    height: 140px;
+    object-fit: cover;
+    border-radius: 6px;
+    margin-bottom: 8px;
+  }
+  .button {
+    background: #007bff;
+    color: #fff;
+    padding: 8px 10px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    width: 100%;
+    font-size: 14px;
+    transition: background 0.2s;
+  }
+  .button:hover {
+    background: #0056b3;
+  }
+  #search-input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+  }
+  #search-results {
+    border: 1px solid #eee;
+    background: #fff;
+    display: none;
+    margin-bottom: 12px;
+    max-height: 250px;
+    overflow-y: auto;
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+  #search-results div {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+  }
+  #search-results a {
+    text-decoration: none;
+    color: #007bff;
+  }
+  #search-results div:hover {
+    background-color: #f9f9f9;
+  }
 </style>
 {% endblock %}
 
@@ -14,32 +78,37 @@
 <h1>Каталог</h1>
 
 <!-- Поиск -->
-<input id="search-input" type="text" placeholder="Поиск..." value="{{ query }}" style="width:100%;padding:10px;margin-bottom:12px;">
-<div id="search-results" style="border:1px solid #eee;display:none;margin-bottom:12px;max-height:250px;overflow:auto;"></div>
+<input id="search-input" type="text" placeholder="Поиск..." value="{{ query }}">
+<div id="search-results"></div>
 
+<!-- Сетка товаров -->
 <div class="product-grid" id="product-list">
   {% for product in page_obj.object_list %}
-  <div class="card" data-product-id="{{ product.id }}">
-    <a href="{% url 'product_detail' product.pk %}">
-      <img src="{% if product.image %}{{ product.image.url }}{% else %}https://via.placeholder.com/220x140?text=No+image{% endif %}" alt="{{ product.title }}">
-    </a>
-    <h3 style="font-size:16px;margin:6px 0;">{{ product.title }}</h3>
-    <div style="color:#28a745;font-weight:bold">{{ product.price }} сом</div>
-    <form class="add-to-cart-form" data-id="{{ product.id }}">
-      {% csrf_token %}
-      <input type="hidden" name="quantity" value="1">
-      <button type="submit" class="button" style="width:100%;margin-top:8px">В корзину</button>
-    </form>
-  </div>
+    <div class="card" data-product-id="{{ product.id }}">
+      <a href="{% url 'product_detail' product.pk %}">
+        <img src="{% if product.image %}{{ product.image.url }}{% else %}https://via.placeholder.com/220x140?text=No+image{% endif %}" alt="{{ product.name }}">
+      </a>
+      <h3 style="font-size:16px;margin:6px 0;">{{ product.name }}</h3>
+      <div style="color:#28a745;font-weight:bold">{{ product.price }} сом</div>
+      <form class="add-to-cart-form" data-id="{{ product.id }}">
+        {% csrf_token %}
+        <input type="hidden" name="quantity" value="1">
+        <button type="submit" class="button">В корзину</button>
+      </form>
+    </div>
+  {% empty %}
+    <p>Пока нет товаров 😔</p>
   {% endfor %}
 </div>
 
-<!-- пагинация -->
-<div style="margin-top:20px;">
+<!-- Пагинация -->
+<div style="margin-top:20px;text-align:center;">
   {% if page_obj.has_previous %}
     <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">← Назад</a>
   {% endif %}
-  <span style="margin:0 10px">Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+  <span style="margin:0 10px">
+    Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
+  </span>
   {% if page_obj.has_next %}
     <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">Вперёд →</a>
   {% endif %}
@@ -48,19 +117,20 @@
 
 {% block extra_scripts %}
 <script>
-// CSRF helper
+// Функция получения CSRF токена
 function getCookie(name) {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
   if (parts.length === 2) return parts.pop().split(';').shift();
 }
 
-// AJAX добавление в корзину
+// Добавление в корзину через AJAX
 document.querySelectorAll('.add-to-cart-form').forEach(form => {
   form.addEventListener('submit', function(e) {
     e.preventDefault();
     const productId = this.dataset.id;
     const formData = new FormData(this);
+
     fetch("{% url 'cart_add_ajax' 0 %}".replace('/0/', '/' + productId + '/'), {
       method: 'POST',
       headers: {
@@ -72,10 +142,10 @@ document.querySelectorAll('.add-to-cart-form').forEach(form => {
     .then(data => {
       if (data.success) {
         const cartCount = document.getElementById('cart-count');
-        if (cartCount) cartCount.textContent = data.cart_count;
-        alert('Добавлено в корзину');
+        if (cartCount) cartCount.textContent = Object.keys(data.cart).length;
+        alert('Товар добавлен в корзину');
       } else {
-        alert('Ошибка при добавлении');
+        alert('Ошибка при добавлении товара');
       }
     })
     .catch(err => {
@@ -85,28 +155,31 @@ document.querySelectorAll('.add-to-cart-form').forEach(form => {
   });
 });
 
-// Live search
+// Живой поиск
 const searchInput = document.getElementById('search-input');
 const resultsBox = document.getElementById('search-results');
 let timer = null;
+
 searchInput.addEventListener('input', function() {
   clearTimeout(timer);
   const q = this.value.trim();
+
   if (!q) {
     resultsBox.style.display = 'none';
     resultsBox.innerHTML = '';
     return;
   }
+
   timer = setTimeout(() => {
     fetch("{% url 'live_search' %}?q=" + encodeURIComponent(q))
       .then(r => r.json())
       .then(data => {
         if (data.results.length === 0) {
-          resultsBox.innerHTML = '<div style="padding:8px;">Ничего не найдено</div>';
+          resultsBox.innerHTML = '<div>Ничего не найдено</div>';
         } else {
           resultsBox.innerHTML = data.results.map(i =>
-            `<div style="padding:8px;border-bottom:1px solid #eee;">
-              <a href="{% url 'product_detail' 0 %}".replace('0', i.id) style="color:#007bff;text-decoration:none;">
+            `<div>
+              <a href="{% url 'product_detail' 0 %}".replace('0', i.id)>
                 ${i.name} — ${i.price} сом
               </a>
             </div>`

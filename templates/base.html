@@ -5,7 +5,6 @@
   <title>{% block title %}Магазин{% endblock %}</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <style>
-    /* минимум стилей для демонстрации */
     body {
       font-family: Arial, sans-serif;
       margin: 0;
@@ -18,9 +17,14 @@
       align-items: center;
       margin-bottom: 20px;
     }
-    a {
-      color: #007bff;
+    a, button {
+      color: #fff;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font: inherit;
       text-decoration: none;
+      padding: 0;
     }
     .container {
       max-width: 1100px;
@@ -37,6 +41,53 @@
       align-items: center;
       gap: 15px;
     }
+    #toast {
+      visibility: hidden;
+      min-width: 200px;
+      background-color: #4BB543;
+      color: white;
+      text-align: center;
+      border-radius: 4px;
+      padding: 12px;
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      transition: visibility 0s, opacity 0.5s ease-in-out;
+      opacity: 0;
+    }
+    .btn-link {
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid #007bff;
+      background: #007bff;
+      color: #fff !important;
+      font-size: 14px;
+      transition: 0.2s;
+    }
+    .btn-link:hover {
+      background: #0056b3;
+      border-color: #0056b3;
+    }
+    .btn-logout {
+      background: #dc3545;
+      border-color: #dc3545;
+    }
+    .btn-logout:hover {
+      background: #a71d2a;
+      border-color: #a71d2a;
+    }
+    .btn-chat {
+      background: #17a2b8;
+      border-color: #17a2b8;
+    }
+    .btn-chat:hover {
+      background: #117a8b;
+      border-color: #117a8b;
+    }
   </style>
   {% block extra_head %}{% endblock %}
 </head>
@@ -46,7 +97,7 @@
     <a href="{% url 'product_list' %}">🏬 Мой магазин</a>
   </div>
   <div class="header-right">
-    <a href="{% url 'cart_detail' %}">
+    <a href="{% url 'cart_detail' %}" class="btn-link" style="background:#28a745;border-color:#28a745;">
       🛒 Корзина (
       <span id="cart-count">
         {% if request.session.cart %}
@@ -58,12 +109,19 @@
       )
     </a>
 
+    <!-- КНОПКА ДЛЯ ПЕРЕХОДА В ЧАТ -->
+    <a href="{% url 'community' %}" class="btn-link btn-chat">💬 Чат сообщества</a>
+
     {% if user.is_authenticated %}
+      <a href="{% url 'profile_seller' %}" class="btn-link">👤 Профиль</a>
       <span>Привет, {{ user.username }}!</span>
-      <a href="{% url 'logout' %}">Выйти</a>
+      <form method="post" action="{% url 'logout' %}" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn-link btn-logout">Выйти</button>
+      </form>
     {% else %}
-      <a href="{% url 'login' %}">Войти</a> |
-      <a href="{% url 'register' %}">Регистрация</a>
+      <a href="{% url 'login' %}" class="btn-link">Войти</a>
+      <a href="{% url 'register' %}" class="btn-link" style="background:#6c757d;border-color:#6c757d;">Регистрация</a>
     {% endif %}
   </div>
 </header>
@@ -72,6 +130,22 @@
   {% block content %}{% endblock %}
 </div>
 
-{% block extra_scripts %}{% endblock %}
+<div id="toast"></div>
+
+{% block extra_scripts %}
+<script>
+function showToast(message) {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.style.visibility = 'visible';
+  toast.style.opacity = '1';
+
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.visibility = 'hidden';
+  }, 3000);
+}
+</script>
+{% endblock %}
 </body>
 </html>

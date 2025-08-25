@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}Выбор роли{% endblock %}
+
+{% block content %}
+<div style="max-width:400px;margin:30px auto;text-align:center;background:#fff;padding:20px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1)">
+    <h2>Выберите роль</h2>
+    <form method="post">
+        {% csrf_token %}
+        <button name="role" value="buyer" type="submit" 
+                style="padding:10px 20px;margin:10px;background:#28a745;color:#fff;border:none;border-radius:6px;cursor:pointer">
+            Я покупатель
+        </button>
+        <button name="role" value="seller" type="submit" 
+                style="padding:10px 20px;margin:10px;background:#007bff;color:#fff;border:none;border-radius:6px;cursor:pointer">
+            Я продавец
+        </button>
+    </form>
+</div>
+{% endblock %}

@@ -8,18 +8,26 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 
-# ⚙️ Включай True при разработке, False — на сервере
-DEBUG = False
-
-ALLOWED_HOSTS = ['Tima62507.pythonanywhere.com']
+DEBUG = True
+ALLOWED_HOSTS = ['*']
 
 # Безопасность для CSRF и сессий (HTTPS на проде)
-CSRF_COOKIE_SECURE = not DEBUG
-SESSION_COOKIE_SECURE = not DEBUG
+if DEBUG:
+    CSRF_COOKIE_SECURE = False
+    SESSION_COOKIE_SECURE = False
+else:
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
+
+
+
 
 CSRF_TRUSTED_ORIGINS = [
     'https://Tima62507.pythonanywhere.com',
+    'http://127.0.0.1',
+    'http://localhost'
 ]
+
 
 # Установленные приложения
 INSTALLED_APPS = [
@@ -33,6 +41,9 @@ INSTALLED_APPS = [
     'main',
     'django_filters',
     'users',
+    'social_django',  # <-- для Google OAuth
+    'channels'
+    
 ]
 
 # Middleware
@@ -56,9 +67,11 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
-                'django.template.context_processors.request',
+                'django.template.context_processors.request',  # обязательно для social_django
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'social_django.context_processors.backends',  # <-- для шаблонов social
+                'social_django.context_processors.login_redirect',
             ],
         },
     },
@@ -70,43 +83,73 @@ WSGI_APPLICATION = 'core.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'project',          # имя базы данных из pgAdmin
-        'USER': 'postgres',      # имя пользователя PostgreSQL
-        'PASSWORD': 'tima62507',  # пароль
-        'HOST': '127.0.0.1',  # или 'localhost'
+        'NAME': 'project3',
+        'USER': 'postgres',
+        'PASSWORD': 'tima62507',
+        'HOST': '127.0.0.1',
         'PORT': '5432',
-
     }
 }
 
-# Валидация паролей
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
+# Настраиваем Redis для WebSocket
+# CHANNEL_LAYER = {
+#     'default': {
+#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
+#         'CONFIG': {
+#             "hosts": [("127.0.0.1", 6379)],
+#         },
+#     },
+# }
 
-# Язык и время
 LANGUAGE_CODE = 'ru'
 TIME_ZONE = 'Asia/Bishkek'
 USE_I18N = True
 USE_TZ = True
 
-# Статика и медиа
-STATIC_URL = 'static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+    BASE_DIR / 'static',   # если статика внутри приложения
+]
+STATIC_ROOT = BASE_DIR / 'collected_static'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Сессии
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
-# Первичный ключ
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+AUTH_USER_MODEL = 'main.User'
+
+
+
+# OAuth Google
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.getenv("GOOGLE_CLIENT_ID")
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
+
+# Redirect URLs
+LOGIN_URL = '/users/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/users/login/'
 
+# Бэкенды аутентификации
+AUTHENTICATION_BACKENDS = (
+    'social_core.backends.google.GoogleOAuth2',  # Google OAuth
+    'django.contrib.auth.backends.ModelBackend',
+)
 
+ASGI_APPLICATION = "core.asgi.application"
+
+# Настройки каналов (пока InMemory, без Redis)
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
