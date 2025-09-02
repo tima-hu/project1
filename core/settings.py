@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'django_filters',
     'users',
     'social_django',  # <-- для Google OAuth
-    'channels'
+    'channels',
     
 ]
 
@@ -77,7 +77,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'core.wsgi.application'
+
 
 # База данных (PostgreSQL)
 DATABASES = {
@@ -97,15 +97,7 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
-# Настраиваем Redis для WebSocket
-# CHANNEL_LAYER = {
-#     'default': {
-#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
-#         'CONFIG': {
-#             "hosts": [("127.0.0.1", 6379)],
-#         },
-#     },
-# }
+
 
 LANGUAGE_CODE = 'ru'
 TIME_ZONE = 'Asia/Bishkek'

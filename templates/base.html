@@ -97,7 +97,8 @@
     <a href="{% url 'product_list' %}">🏬 Мой магазин</a>
   </div>
   <div class="header-right">
-    <a href="{% url 'cart_detail' %}" class="btn-link" style="background:#28a745;border-color:#28a745;">
+    <!-- Кнопка Корзина -->
+    <a href="{% url 'cart' %}" class="btn-link" style="background:#28a745;border-color:#28a745;">
       🛒 Корзина (
       <span id="cart-count">
         {% if request.session.cart %}
@@ -109,8 +110,8 @@
       )
     </a>
 
-    <!-- КНОПКА ДЛЯ ПЕРЕХОДА В ЧАТ -->
-    <a href="{% url 'community' %}" class="btn-link btn-chat">💬 Чат сообщества</a>
+    <!-- Кнопка Чат -->
+    <a href="{% url 'chat' %}" class="btn-link btn-chat">💬 Чат сообщества</a>
 
     {% if user.is_authenticated %}
       <a href="{% url 'profile_seller' %}" class="btn-link">👤 Профиль</a>
@@ -125,6 +126,7 @@
     {% endif %}
   </div>
 </header>
+
 
 <div class="container">
   {% block content %}{% endblock %}

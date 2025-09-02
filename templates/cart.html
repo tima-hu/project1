@@ -1,138 +1,98 @@
-{% extends "base.html" %}
-{% block title %}Чат сообщества{% endblock %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Корзина{% endblock %}
 
 {% block content %}
-<div class="chat-container">
-    <h1>💬 Чат сообщества</h1>
+<h1>🛒 Ваша корзина</h1>
 
-    <!-- Контейнер для сообщений -->
-    <div id="chat-box"></div>
+{% if cart_items %}
+<div class="cart-container">
+    {% for item in cart_items %}
+    <div class="cart-item">
+        <img src="{% if item.product.images.all.exists %}{{ item.product.images.first.image.url }}{% else %}{% static 'placeholder.png' %}{% endif %}" 
+             alt="{{ item.product.name }}" class="cart-item-image">
+        <div class="cart-item-details">
+            <h3>{{ item.product.name }}</h3>
+            <p>Цена за единицу: {{ item.price }} сом</p>
+            <p>Количество: {{ item.quantity }}</p>
+            <p>Сумма: {{ item.total }} сом</p>
+            <form method="post" action="{% url 'cart_remove_ajax' item.product.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-remove">Удалить</button>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
 
-    <!-- Форма отправки -->
-    <form id="chat-form">
-        <input id="message-input" type="text" placeholder="Введите сообщение...">
-        <button type="submit">Отправить</button>
-    </form>
+    <div class="cart-total">
+        <h2>Итого: {{ total_price }} сом</h2>
+        {% comment %} <a href="{% url 'order_create' %}" class="btn btn-checkout">Оформить заказ</a> {% endcomment %}
+    </div>
 </div>
 
+{% else %}
+<p>Ваша корзина пуста.</p>
+{% endif %}
+
 <style>
-/* --- CSS --- */
-.chat-container {
-    max-width: 800px;
-    margin: auto;
-    padding: 20px;
-    font-family: Arial, sans-serif;
-}
-
-#chat-box {
-    border: 1px solid #ccc;
-    height: 400px;
-    overflow-y: auto;
-    padding: 10px;
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    margin-bottom: 15px;
-}
-
-#chat-form {
+.cart-container {
     display: flex;
-    gap: 10px;
+    flex-direction: column;
+    gap: 20px;
 }
-
-#message-input {
-    flex: 1;
-    padding: 10px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    outline: none;
+.cart-item {
+    display: flex;
+    gap: 15px;
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 10px;
+    align-items: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
-
-#chat-form button {
-    padding: 10px 18px;
-    background: #007bff;
+.cart-item-image {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+.cart-item-details {
+    flex-grow: 1;
+}
+.cart-item-details h3 {
+    margin: 0 0 10px 0;
+}
+.cart-item-details p {
+    margin: 4px 0;
+}
+.btn-remove {
+    padding: 6px 12px;
+    background: #dc3545;
     color: #fff;
     border: none;
     border-radius: 6px;
     cursor: pointer;
-    transition: background 0.3s;
+    margin-top: 5px;
 }
-
-#chat-form button:hover {
-    background: #0056b3;
+.btn-remove:hover {
+    background: #a71d2a;
 }
-
-.message.self {
-    background: #e7f1ff;
-    padding: 6px 10px;
-    border-radius: 6px;
-    max-width: 75%;
-    margin-left: auto;
+.cart-total {
     text-align: right;
-    margin-bottom: 8px;
+    margin-top: 20px;
 }
-
-.message.other {
-    background: #f8f8f8;
-    padding: 6px 10px;
-    border-radius: 6px;
-    max-width: 75%;
-    margin-right: auto;
-    margin-bottom: 8px;
+.btn-checkout {
+    display: inline-block;
+    padding: 10px 20px;
+    background: #28a745;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: 0.2s;
+}
+.btn-checkout:hover {
+    background: #1e7e34;
 }
 </style>
-
-<script>
-/* --- JS --- */
-const chatBox = document.getElementById("chat-box");
-const chatForm = document.getElementById("chat-form");
-const messageInput = document.getElementById("message-input");
-
-// Имя текущего пользователя из Django
-const username = "{{ request.user.username|escapejs }}";
-
-// Подключение WebSocket
-const chatSocket = new WebSocket(
-    (window.location.protocol === "https:" ? "wss://" : "ws://") +
-    window.location.host +
-    "/ws/chat/"
-);
-
-// Получение сообщений от сервера
-chatSocket.onmessage = function(e) {
-    const data = JSON.parse(e.data);
-    const msgElement = document.createElement("div");
-
-    if (data.username === username) {
-        msgElement.classList.add("message", "self");
-        msgElement.innerHTML = `<b>Вы:</b> ${data.message}`;
-    } else {
-        msgElement.classList.add("message", "other");
-        msgElement.innerHTML = `<b>${data.username}:</b> ${data.message}`;
-    }
-
-    chatBox.appendChild(msgElement);
-    chatBox.scrollTop = chatBox.scrollHeight; // автопрокрутка
-};
-
-// Отправка сообщений
-chatForm.addEventListener("submit", function(e) {
-    e.preventDefault();
-    const message = messageInput.value.trim();
-    if (message) {
-        chatSocket.send(JSON.stringify({ message, username }));
-        messageInput.value = "";
-    }
-});
-
-// Закрытие WebSocket при уходе со страницы
-window.addEventListener("beforeunload", () => {
-    chatSocket.close();
-});
-
-// Обработка ошибок
-chatSocket.onerror = function(e) {
-    console.error("WebSocket ошибка:", e);
-};
-</script>
 {% endblock %}

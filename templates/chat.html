@@ -103,52 +103,19 @@
     </div>
 
     <script>
-        const chatLog = document.querySelector("#chat-log");
-        const chatInput = document.querySelector("#chat-message-input");
-        const chatSubmit = document.querySelector("#chat-message-submit");
-
-        // Если пользователь авторизован — используем его имя, иначе "Гость"
+        // Имя пользователя (подставляется из Django)
         const username = "{{ request.user.username|default:'Гость' }}";
 
-        // Подключение WebSocket
-        const chatSocket = new WebSocket(
-            "ws://" + window.location.host + "/ws/chat/"
-        );
+        // Элементы DOM
+        const chatInput = document.getElementById("chat-message-input");
+        const chatSubmit = document.getElementById("chat-message-submit");
+        const chatLog = document.getElementById("chat-log");
 
-        // Получаем сообщение от сервера
-        chatSocket.onmessage = function(e) {
-            const data = JSON.parse(e.data);
-            const message = data.message;
-            const username = data.username;
+        // Автоматически выбираем ws:// или wss://
+        const protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+        const chatSocket = new WebSocket(protocol + window.location.host + "/ws/chat/");
 
-            messages.innerHTML += `<p><b>${username}:</b> ${message}</p>`;
-};
-        // Обработка закрытия соединения
-        chatSocket.onclose = function(e) {
-            addSystemMessage("🔌 Соединение закрыто");
-        };
-
-        // Отправка сообщения
-        chatSubmit.onclick = sendMessage;
-        chatInput.addEventListener("keypress", function(e) {
-            if (e.key === "Enter") {
-                sendMessage();
-            }
-        });
-
-        function sendMessage() {
-            const message = chatInput.value.trim();
-            if (!message) return;
-
-            chatSocket.send(JSON.stringify({
-                "message": message,
-                "username": username
-            }));
-
-            chatInput.value = "";
-        }
-
-        // Добавляем сообщение в чат
+        // Функция добавления обычного сообщения
         function addMessage(user, message) {
             const msgDiv = document.createElement("div");
             msgDiv.classList.add("message");
@@ -162,13 +129,53 @@
             chatLog.scrollTop = chatLog.scrollHeight;
         }
 
-        // Системные сообщения
+        // Функция добавления системного сообщения
         function addSystemMessage(text) {
             const msgDiv = document.createElement("div");
             msgDiv.classList.add("system-message");
             msgDiv.textContent = text;
             chatLog.appendChild(msgDiv);
+            chatLog.scrollTop = chatLog.scrollHeight;
         }
+
+        // Функция отправки сообщения
+        function sendMessage() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            chatSocket.send(JSON.stringify({
+                message: message,
+                username: username
+            }));
+
+            chatInput.value = "";
+        }
+
+        // Обработчик получения сообщений от сервера
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+
+            if (data.type === "system") {
+                addSystemMessage(data.message);
+            } else {
+                addMessage(data.username, data.message);
+            }
+        };
+
+        // Обработчик закрытия соединения
+        chatSocket.onclose = function(e) {
+            addSystemMessage("🔌 Соединение закрыто");
+        };
+
+        // Отправка сообщения при клике на кнопку
+        chatSubmit.addEventListener("click", sendMessage);
+
+        // Отправка сообщения при нажатии Enter
+        chatInput.addEventListener("keypress", function(e) {
+            if (e.key === "Enter") {
+                sendMessage();
+            }
+        });
     </script>
 </body>
 </html>

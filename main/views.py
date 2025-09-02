@@ -12,15 +12,14 @@ from .models import Product, ProductImage, Order, OrderItem, Seller, ChatMessage
 from .forms import ProductForm, ProductImageFormSet, CustomUserCreationForm
 
 
-# ------------------------- ЧАТ -------------------------
 @login_required
 def community_chat(request):
-    messages_qs = list(ChatMessage.objects.select_related("user").order_by("-created_at")[:50])
-    messages_qs.reverse()  # чтобы сначала старые
+    
+    messages_qs = ChatMessage.objects.select_related("user").order_by("created_at")[:50]
+    
     return render(request, "chat.html", {"messages": messages_qs})
 
 
-# ------------------------- ПРОФИЛИ -------------------------
 @login_required
 def profile_seller_view(request):
     seller = getattr(request.user, 'seller', None)
@@ -34,16 +33,16 @@ def profile_seller_view(request):
 
 @login_required
 def profile_buyer(request):
-    # Если продавец пытается зайти в профиль покупателя → перенаправляем
+    
     if hasattr(request.user, 'seller'):
         return redirect("profile_seller")
 
-    # Все заказы текущего покупателя
+   
     orders = Order.objects.filter(user=request.user).prefetch_related("items__product")
     return render(request, "profile_buyer.html", {"orders": orders})
 
 
-# ------------------------- РЕГИСТРАЦИЯ -------------------------
+
 def register(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
@@ -252,3 +251,4 @@ def order_success(request, order_id):
         "order": order,
         "items": items
     })
+
