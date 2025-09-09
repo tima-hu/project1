@@ -1,41 +1,9 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.forms import inlineformset_factory
-from .models import User, Product, ProductImage
+from .models import  Product, ProductImage
+from core.settings import AUTH_USER_MODEL
 
-
-# ===========================
-#   ФОРМА РЕГИСТРАЦИИ
-# ===========================
-class CustomUserCreationForm(UserCreationForm):
-    email = forms.EmailField(required=True, label="Email")
-    role = forms.ChoiceField(
-        choices=User.ROLE_CHOICES,
-        required=True,
-        label="Роль"
-    )
-    phone = forms.CharField(
-        required=False,
-        label="Телефон",
-        widget=forms.TextInput(attrs={"placeholder": "+7..."})
-    )
-    avatar = forms.ImageField(required=False, label="Аватар")
-
-    class Meta:
-        model = User
-        fields = ("username", "email", "role", "phone", "avatar", "password1", "password2")
-
-    def clean_username(self):
-        username = self.cleaned_data["username"]
-        if User.objects.filter(username__iexact=username).exists():
-            raise forms.ValidationError("Пользователь с таким именем уже существует.")
-        return username
-
-
-
-# ===========================
-#   ФОРМА ТОВАРА
-# ===========================
 class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
@@ -46,18 +14,13 @@ class ProductForm(forms.ModelForm):
         }
 
 
-# ===========================
-#   ФОРМА КАРТИНОК ТОВАРА
-# ===========================
 class ProductImageForm(forms.ModelForm):
     class Meta:
         model = ProductImage
         fields = ["image"]
 
 
-# ===========================
-#   ФОРМСЕТ ДЛЯ КАРТИНОК
-# ===========================
+
 ProductImageFormSet = inlineformset_factory(
     Product,
     ProductImage,

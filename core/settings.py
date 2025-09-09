@@ -83,7 +83,7 @@ TEMPLATES = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'project3',
+        'NAME': 'project4',
         'USER': 'postgres',
         'PASSWORD': 'tima62507',
         'HOST': '127.0.0.1',
@@ -118,7 +118,7 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-AUTH_USER_MODEL = 'main.User'
+AUTH_USER_MODEL = 'users.User'
 
 
 

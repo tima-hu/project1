@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>404 Not Found</title>
+  <style>
+    /* Базовые стили */
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: "Source Sans Pro", sans-serif;
+      background-color: #0a1931;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .container {
+      text-align: center;
+      position: relative;
+      z-index: 10;
+      padding: 2rem;
+    }
+
+    .container h1 {
+      font-size: 10rem;
+      font-weight: 900;
+      margin: 0;
+      color: #00d9ff;
+      animation: float 3s ease-in-out infinite;
+      text-shadow: 0 0 20px rgba(0, 217, 255, 0.8);
+    }
+
+    .container h2 {
+      font-size: 2rem;
+      margin: 1rem 0;
+      font-weight: 600;
+    }
+
+    .container p {
+      font-size: 1.2rem;
+      color: #d1e2ed;
+    }
+
+    .container a {
+      display: inline-block;
+      margin-top: 2rem;
+      padding: 0.8rem 1.5rem;
+      background: #00d9ff;
+      color: #0a1931;
+      text-decoration: none;
+      border-radius: 10px;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    .container a:hover {
+      background: #fff;
+      color: #0a1931;
+    }
+
+    /* Анимация "плавания" */
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+    }
+
+    /* Анимированный фон */
+    .bg {
+      position: absolute;
+      top: 0; left: 0;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at center, #00d9ff22 10%, transparent 70%);
+      animation: moveBg 10s linear infinite;
+      z-index: 0;
+    }
+
+    @keyframes moveBg {
+      0% { transform: translate(-25%, -25%); }
+      100% { transform: translate(25%, 25%); }
+    }
+  </style>
+</head>
+<body>
+<div class="error-404">
+  <h1>404</h1>
+  <h2>Упс! Страница не найдена</h2>
+  <p>Похоже, вы забрели не туда. Попробуйте вернуться на главную страницу.</p>
+  <a href="{% url 'product_list' %}">🏬 На главную</a>
+</div>
+</body>
+</html>
+
+<div class="error-404">
+  <h1>404</h1>
+  <h2>Упс! Страница не найдена</h2>
+  <p>Похоже, вы забрели не туда. Попробуйте вернуться на главную страницу.</p>
+  <a href="{% url 'product_list' %}">🏬 На главную</a>
+</div>
+{% endblock %}

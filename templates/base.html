@@ -5,18 +5,30 @@
   <title>{% block title %}Магазин{% endblock %}</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <style>
+    /* === Основные стили === */
     body {
       font-family: Arial, sans-serif;
       margin: 0;
       padding: 20px;
       background: #f5f5f5;
+      color: #000;
+      transition: background 0.3s ease, color 0.3s ease;
     }
+
+    /* === Тёмная тема для body === */
+    body.dark {
+      background: #121212;
+      color: #f5f5f5;
+    }
+
+    /* === Шапка === */
     header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 20px;
     }
+
     a, button {
       color: #fff;
       background: none;
@@ -26,21 +38,132 @@
       text-decoration: none;
       padding: 0;
     }
+
+    /* === Контейнер страницы === */
     .container {
       max-width: 1100px;
       margin: 0 auto;
       background: #fff;
+      color: #000;
       padding: 20px;
       border-radius: 8px;
+      transition: background 0.3s ease, color 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
+
+    /* === Контейнер в тёмной теме === */
+    body.dark .container {
+      background: #1e1e1e;
+      color: #f5f5f5;
+      box-shadow: 0 4px 15px rgba(255, 255, 255, 0.05);
+    }
+
     #cart-count {
       font-weight: bold;
     }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
     .header-right {
       display: flex;
       align-items: center;
       gap: 15px;
     }
+
+    /* === Кнопки === */
+    .btn-link {
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid #007bff;
+      background: #007bff;
+      color: #fff !important;
+      font-size: 14px;
+      transition: background 0.3s ease, border-color 0.3s ease;
+    }
+
+    .btn-link:hover {
+      background: #0056b3;
+      border-color: #0056b3;
+    }
+
+    body.dark .btn-link {
+      background: #0d6efd;
+      border-color: #0d6efd;
+      color: #fff !important;
+    }
+
+    body.dark .btn-link:hover {
+      background: #1a73e8;
+      border-color: #1a73e8;
+    }
+
+    .btn-logout {
+      background: #dc3545;
+      border-color: #dc3545;
+    }
+
+    .btn-logout:hover {
+      background: #a71d2a;
+      border-color: #a71d2a;
+    }
+
+    .btn-chat {
+      background: #17a2b8;
+      border-color: #17a2b8;
+    }
+
+    .btn-chat:hover {
+      background: #117a8b;
+      border-color: #117a8b;
+    }
+
+    /* === Кнопка переключения темы с анимацией === */
+    .theme-toggle {
+      background-color: #ffb400;
+      color: #fff;
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Hover эффект */
+    .theme-toggle:hover {
+      background-color: #ff9900;
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+    }
+
+    /* Нажатие */
+    .theme-toggle:active {
+      transform: translateY(0) scale(0.95);
+      box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+
+    /* Вращение при включении тёмной темы */
+    body.dark .theme-toggle {
+      animation: rotateTheme 0.5s ease forwards;
+    }
+
+    @keyframes rotateTheme {
+      0% { transform: rotate(0deg); }
+      50% { transform: rotate(180deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* === Toast уведомления === */
     #toast {
       visibility: hidden;
       min-width: 200px;
@@ -59,64 +182,33 @@
       transition: visibility 0s, opacity 0.5s ease-in-out;
       opacity: 0;
     }
-    .btn-link {
-      padding: 6px 12px;
-      border-radius: 6px;
-      border: 1px solid #007bff;
-      background: #007bff;
-      color: #fff !important;
-      font-size: 14px;
-      transition: 0.2s;
-    }
-    .btn-link:hover {
-      background: #0056b3;
-      border-color: #0056b3;
-    }
-    .btn-logout {
-      background: #dc3545;
-      border-color: #dc3545;
-    }
-    .btn-logout:hover {
-      background: #a71d2a;
-      border-color: #a71d2a;
-    }
-    .btn-chat {
-      background: #17a2b8;
-      border-color: #17a2b8;
-    }
-    .btn-chat:hover {
-      background: #117a8b;
-      border-color: #117a8b;
-    }
   </style>
   {% block extra_head %}{% endblock %}
 </head>
 <body>
 <header>
-  <div>
-    <a href="{% url 'product_list' %}">🏬 Мой магазин</a>
+  <div class="header-left">
+    <a href="{% url 'product_list' %}" class="btn-link" style="background:#6f42c1;border-color:#6f42c1;">
+      🏬 Мой магазин
+    </a>
+    <button class="theme-toggle" onclick="toggleTheme()" title="Сменить тему">🌓</button>
   </div>
+
   <div class="header-right">
-    <!-- Кнопка Корзина -->
     <a href="{% url 'cart' %}" class="btn-link" style="background:#28a745;border-color:#28a745;">
       🛒 Корзина (
       <span id="cart-count">
-        {% if request.session.cart %}
-          {{ request.session.cart|length }}
-        {% else %}
-          0
-        {% endif %}
+        {% if request.session.cart %}{{ request.session.cart|length }}{% else %}0{% endif %}
       </span>
       )
     </a>
 
-    <!-- Кнопка Чат -->
     <a href="{% url 'chat' %}" class="btn-link btn-chat">💬 Чат сообщества</a>
 
     {% if user.is_authenticated %}
       <a href="{% url 'profile_seller' %}" class="btn-link">👤 Профиль</a>
       <span>Привет, {{ user.username }}!</span>
-      <form method="post" action="{% url 'logout' %}" style="display:inline;">
+      <form method="post" action="{% url 'users_logout' %}" style="display:inline;">
         {% csrf_token %}
         <button type="submit" class="btn-link btn-logout">Выйти</button>
       </form>
@@ -126,7 +218,6 @@
     {% endif %}
   </div>
 </header>
-
 
 <div class="container">
   {% block content %}{% endblock %}
@@ -147,6 +238,20 @@ function showToast(message) {
     toast.style.visibility = 'hidden';
   }, 3000);
 }
+
+
+function toggleTheme() {
+  document.body.classList.toggle('dark');
+  localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+}
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme === 'dark') {
+    document.body.classList.add('dark');
+  }
+});
 </script>
 {% endblock %}
 </body>

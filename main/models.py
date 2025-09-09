@@ -3,34 +3,13 @@ from django.db import models
 from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-
-# =====================
-#   КАСТОМНЫЙ ПОЛЬЗОВАТЕЛЬ
-# =====================
-class User(AbstractUser):
-    ROLE_CHOICES = (
-        ('buyer', 'Покупатель'),
-        ('seller', 'Продавец'),
-    )
-
-    role = models.CharField(
-        max_length=10,
-        choices=ROLE_CHOICES,
-        default='buyer'
-    )
-    phone = models.CharField(max_length=20, blank=True, null=True)
-    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
-
-    def __str__(self):
-        return self.username
+from core.settings import AUTH_USER_MODEL
 
 
-# =====================
-#   ПРОФИЛЬ ПРОДАВЦА
-# =====================
+
 class Seller(models.Model):
     user = models.OneToOneField(
-        settings.AUTH_USER_MODEL,
+        AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="seller"
     )
@@ -40,12 +19,10 @@ class Seller(models.Model):
         return self.store_name or f"Магазин {self.user.username}"
 
 
-# =====================
-#   ЧАТ
-# =====================
+
 class ChatMessage(models.Model):
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="chat_messages"
     )
@@ -56,9 +33,7 @@ class ChatMessage(models.Model):
         return f"{self.user.username}: {self.message[:30]}"
 
 
-# =====================
-#   ТОВАРЫ
-# =====================
+
 class Product(models.Model):
     CATEGORY_CHOICES = [
         ('electronics', 'Электроника'),
@@ -89,28 +64,52 @@ class ProductImage(models.Model):
         return f"Image for {self.product.name}"
 
 
-# =====================
-#   КОРЗИНА И ЗАКАЗЫ
-# =====================
+
+# models.py
+from django.db import models
+from django.conf import settings
+
 class Cart(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='carts')
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="cart"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def total_price(self):
+        return sum(item.total_price() for item in self.items.all())
+
+    def total_quantity(self):
+        return sum(item.quantity for item in self.items.all())
+
     def __str__(self):
-        return f"Cart #{self.id} for {self.user.username}"
+        return f"Корзина {self.user}"
 
 
 class CartItem(models.Model):
-    cart = models.ForeignKey(Cart, related_name='items', on_delete=models.CASCADE)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    cart = models.ForeignKey(
+        Cart,
+        on_delete=models.CASCADE,
+        related_name="items"
+    )
+    product = models.ForeignKey(
+        'Product',
+        on_delete=models.CASCADE
+    )
     quantity = models.PositiveIntegerField(default=1)
 
+    def total_price(self):
+        return self.product.price * self.quantity
+
     def __str__(self):
-        return f"{self.quantity} x {self.product.name}"
+        return f"{self.product.name} ({self.quantity})"
+
+
 
 
 class Order(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders')
+    user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders')
     cart = models.OneToOneField(Cart, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=50, default='processing')
@@ -129,12 +128,8 @@ class OrderItem(models.Model):
         return f"{self.quantity} x {self.product.name}"
 
 
-# =====================
-#   СИГНАЛ ДЛЯ СОЗДАНИЯ ПРОДАВЦА
-# =====================
-@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+@receiver(post_save, sender=AUTH_USER_MODEL)
 def create_seller_for_new_user(sender, instance, created, **kwargs):
-    """Автоматически создаём профиль продавца для всех пользователей"""
     if created:
         Seller.objects.get_or_create(
             user=instance,

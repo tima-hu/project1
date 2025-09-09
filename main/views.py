@@ -1,15 +1,14 @@
-from decimal import Decimal, InvalidOperation
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.contrib.auth import login, get_backends
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LogoutView
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.contrib.auth import update_session_auth_hash
 from django.core.paginator import Paginator
-from .models import Product, ProductImage, Order, OrderItem, Seller, ChatMessage
-from .forms import ProductForm, ProductImageFormSet, CustomUserCreationForm
+from .models import Product, ProductImage, Order, OrderItem, Seller, ChatMessage,Cart, CartItem
+from .forms import ProductForm, ProductImageFormSet
+from decimal import Decimal
 
 
 @login_required
@@ -41,35 +40,9 @@ def profile_buyer(request):
     orders = Order.objects.filter(user=request.user).prefetch_related("items__product")
     return render(request, "profile_buyer.html", {"orders": orders})
 
-
-
-def register(request):
-    if request.method == 'POST':
-        form = CustomUserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-
-            # Создаем продавца автоматически
-            Seller.objects.get_or_create(user=user, defaults={"store_name": f"Магазин {user.username}"})
-
-            # Автоматический вход
-            backend = get_backends()[0]
-            login(request, user, backend=backend.__class__.__module__ + '.' + backend.__class__.__name__)
-
-            messages.success(request, 'Регистрация прошла успешно!')
-            return redirect('product_list')
-        else:
-            messages.error(request, 'Ошибка регистрации. Проверьте правильность данных.')
-    else:
-        form = CustomUserCreationForm()
-
-    return render(request, 'register.html', {'form': form})
-
-
-# ------------------------- ТОВАРЫ -------------------------
 @login_required
 def product_create(request):
-    # Гарантируем, что у пользователя есть продавец
+    
     seller, _ = Seller.objects.get_or_create(
         user=request.user,
         defaults={"store_name": f"Магазин {request.user.username}"}
@@ -136,56 +109,7 @@ def product_list(request):
     })
 
 
-# ------------------------- КОРЗИНА -------------------------
-def cart_detail(request):
-    cart = request.session.get('cart', {})
-    cart_items = []
-    total_price = 0
 
-    for product_id, quantity in cart.items():
-        product = get_object_or_404(Product, id=product_id)
-        item_total = quantity * product.price
-        total_price += item_total
-        cart_items.append({
-            'product': product,
-            'quantity': quantity,
-            'price': product.price,
-            'total': item_total,
-        })
-
-    return render(request, 'cart.html', {
-        'cart_items': cart_items,
-        'total_price': total_price,
-    })
-
-
-@require_POST
-def cart_add_ajax(request, product_id):
-    product = get_object_or_404(Product, pk=product_id)
-    cart = request.session.get('cart', {})
-    key = str(product_id)
-    cart[key] = cart.get(key, 0) + 1
-    request.session['cart'] = cart
-    return JsonResponse({'success': True, 'cart': cart, 'message': f'Добавлено: {product.name}'})
-
-
-@require_POST
-def cart_remove_ajax(request, product_id):
-    product = get_object_or_404(Product, pk=product_id)
-    cart = request.session.get('cart', {})
-    key = str(product_id)
-    if key in cart:
-        cart[key] -= 1
-        if cart[key] <= 0:
-            cart.pop(key)
-        request.session['cart'] = cart
-    return JsonResponse({'success': True, 'cart': cart, 'message': f'Удалено: {product.name}'})
-
-
-# ------------------------- ПРОЧЕЕ -------------------------
-class UserLogoutView(LogoutView):
-    def get(self, request, *args, **kwargs):
-        return self.post(request, *args, **kwargs)
 
 
 @login_required
@@ -242,9 +166,7 @@ def choose_role(request):
 
 @login_required
 def order_success(request, order_id):
-    # Получаем заказ
     order = get_object_or_404(Order, id=order_id, user=request.user)
-    # Загружаем товары в заказе
     items = OrderItem.objects.filter(order=order).select_related("product")
 
     return render(request, "order_success.html", {
@@ -252,3 +174,48 @@ def order_success(request, order_id):
         "items": items
     })
 
+
+@login_required
+def cart_view(request):
+    cart, created = Cart.objects.get_or_create(user=request.user)
+    cart_items = cart.items.select_related("product")
+    total_price = cart.total_price()
+    return render(request, "cart/cart.html", {
+        "cart_items": cart_items,
+        "total_price": total_price
+    })
+
+
+@login_required
+def cart_add(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    cart, created = Cart.objects.get_or_create(user=request.user)
+    cart_item, created = CartItem.objects.get_or_create(cart=cart, product=product)
+
+    cart_item.quantity += 1
+    cart_item.save()
+
+    return redirect("cart")
+
+
+@login_required
+def cart_remove(request, product_id):
+    cart = get_object_or_404(Cart, user=request.user)
+    item = get_object_or_404(CartItem, cart=cart, product_id=product_id)
+    item.delete()
+    return redirect("cart")
+
+def cart_add_ajax(request, product_id):
+    cart = Cart(request)
+    product = Product.objects.get(id=product_id)
+    cart.add(product=product, quantity=1)
+    return JsonResponse({'success': True, 'cart_total': len(cart)})
+
+def cart_remove_ajax(request, product_id):
+    cart = Cart(request)
+    product = Product.objects.get(id=product_id)
+    cart.remove(product)
+    return JsonResponse({'success': True, 'cart_total': len(cart)})
+
+def user_logout(request):
+    return LogoutView.as_view(next_page='product_list')(request, user=request.user)
