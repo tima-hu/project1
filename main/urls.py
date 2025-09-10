@@ -19,9 +19,6 @@ urlpatterns = [
 
     path('live-search/', views.live_search, name='live_search'),
     path('order-success/<int:order_id>/', views.order_success, name='order_success'),
-
-
-    path('users/logout/', views.user_logout, name='users_logout'),
  
 
     path('profile/seller/', views.profile_seller_view, name='profile_seller'),

@@ -1,8 +1,9 @@
 from django.shortcuts import render
 from django.contrib.auth import logout
-# Create your views here.
+from django.contrib.auth.views import LogoutView
 from django.shortcuts import render, redirect
 from .forms import RegisterForm, LoginForm
+from .models import Seller
 from django.contrib.auth import authenticate, login as auth_login
 from django.contrib import messages
 
@@ -40,6 +41,18 @@ def login_view(request):
 
     return render(request, 'login.html', {'form': form})
 
-def logout_view(request):
-    logout(request)  # ✅ Выходим из системы
-    return redirect('product_detail', pk=1)  
+def user_logout(request):
+    return LogoutView.as_view(next_page='product_list')(request, user=request.user)
+
+
+# def create_seller(request):
+#     if request.method == 'POST':
+#         store_name = request.POST.get('store_name')
+#         if store_name:
+#             seller = Seller.objects.create(user=request.user, store_name=store_name)
+#             messages.success(request, 'Вы успешно стали продавцом!')
+#             return redirect('profile_seller')
+#         else:
+#             messages.error(request, 'Пожалуйста, введите название магазина.')
+#     return render(request, 'create_seller.html')
+

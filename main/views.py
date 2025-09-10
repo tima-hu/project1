@@ -44,8 +44,7 @@ def profile_buyer(request):
 def product_create(request):
     
     seller, _ = Seller.objects.get_or_create(
-        user=request.user,
-        defaults={"store_name": f"Магазин {request.user.username}"}
+        user=request.user
     )
 
     if request.method == "POST":
@@ -217,5 +216,3 @@ def cart_remove_ajax(request, product_id):
     cart.remove(product)
     return JsonResponse({'success': True, 'cart_total': len(cart)})
 
-def user_logout(request):
-    return LogoutView.as_view(next_page='product_list')(request, user=request.user)

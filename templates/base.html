@@ -208,7 +208,7 @@
     {% if user.is_authenticated %}
       <a href="{% url 'profile_seller' %}" class="btn-link">👤 Профиль</a>
       <span>Привет, {{ user.username }}!</span>
-      <form method="post" action="{% url 'users_logout' %}" style="display:inline;">
+      <form method="post" action="{% url 'logout' %}" style="display:inline;">
         {% csrf_token %}
         <button type="submit" class="btn-link btn-logout">Выйти</button>
       </form>
