@@ -179,7 +179,7 @@ def cart_view(request):
     cart, created = Cart.objects.get_or_create(user=request.user)
     cart_items = cart.items.select_related("product")
     total_price = cart.total_price()
-    return render(request, "cart/cart.html", {
+    return render(request, "cart.html", {
         "cart_items": cart_items,
         "total_price": total_price
     })

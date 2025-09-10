@@ -6,30 +6,24 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = os.getenv("SECRET_KEY", "unsafe-secret-key")  # на проде обязательно задать через env
 
 DEBUG = True
-ALLOWED_HOSTS = ['*']
 
-# Безопасность для CSRF и сессий (HTTPS на проде)
-if DEBUG:
-    CSRF_COOKIE_SECURE = False
-    SESSION_COOKIE_SECURE = False
-else:
-    CSRF_COOKIE_SECURE = True
-    SESSION_COOKIE_SECURE = True
+ALLOWED_HOSTS = ['*']  # для продакшена указывай конкретные домены
 
+# CSRF и сессии
+CSRF_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG
 
-
-
+# CSRF доверенные источники
 CSRF_TRUSTED_ORIGINS = [
+    'http://127.0.0.1:8000',  # обязательно укажи порт
+    'http://localhost:8000',
     'https://Tima62507.pythonanywhere.com',
-    'http://127.0.0.1',
-    'http://localhost'
 ]
 
-
-# Установленные приложения
+# Приложения
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -41,17 +35,16 @@ INSTALLED_APPS = [
     'main',
     'django_filters',
     'users',
-    'social_django',  # <-- для Google OAuth
+    'social_django',  # Google OAuth
     'channels',
-    
 ]
 
 # Middleware
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',  # обязательно до CsrfViewMiddleware
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',  # CSRF защита
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -70,14 +63,12 @@ TEMPLATES = [
                 'django.template.context_processors.request',  # обязательно для social_django
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'social_django.context_processors.backends',  # <-- для шаблонов social
+                'social_django.context_processors.backends',  # для social
                 'social_django.context_processors.login_redirect',
             ],
         },
     },
 ]
-
-
 
 # База данных (PostgreSQL)
 DATABASES = {
@@ -91,6 +82,7 @@ DATABASES = {
     }
 }
 
+# Валидаторы пароля
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -98,29 +90,30 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-
+# Локализация
 LANGUAGE_CODE = 'ru'
 TIME_ZONE = 'Asia/Bishkek'
 USE_I18N = True
 USE_TZ = True
 
+# Статика и медиа
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
-    BASE_DIR / 'static',   # если статика внутри приложения
 ]
 STATIC_ROOT = BASE_DIR / 'collected_static'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# Сессии
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
+# Авто ID
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Пользовательская модель
 AUTH_USER_MODEL = 'users.User'
-
-
 
 # OAuth Google
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.getenv("GOOGLE_CLIENT_ID")
@@ -137,9 +130,10 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
 )
 
+# ASGI (для Channels)
 ASGI_APPLICATION = "core.asgi.application"
 
-# Настройки каналов (пока InMemory, без Redis)
+# Каналы (InMemory)
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels.layers.InMemoryChannelLayer"
