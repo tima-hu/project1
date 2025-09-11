@@ -27,8 +27,11 @@ urlpatterns = [
 
     path('seller/purchases/', views.seller_purchases, name='seller_purchases'),
     path("chat/", views.community_chat, name="chat"),
-    path('', views.choose_role, name='choose_role')
-
+    path('', views.choose_role, name='choose_role'),
+    path('order/create/', views.order_create, name='order_create'),
+    # path('order/<int:order_id>/', views.order_detail, name='order_detail'),
+    # path('order/<int:order_id>/success/', views.order_success, name='order_success'),
+    # path('order/<int:order_id>/cancel/', views.order_cancel, name='order_cancel'),
 
 
 ]

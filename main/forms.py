@@ -29,3 +29,6 @@ ProductImageFormSet = inlineformset_factory(
     max_num=10,
     can_delete=True
 )
+class OrderForm(forms.Form):
+    address = forms.CharField(widget=forms.Textarea(attrs={'rows':3}), label="Адрес доставки")
+    phone = forms.CharField(max_length=20, label="Телефон")

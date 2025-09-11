@@ -7,7 +7,7 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth import update_session_auth_hash
 from django.core.paginator import Paginator
 from .models import Product, ProductImage, Order, OrderItem, Seller, ChatMessage,Cart, CartItem
-from .forms import ProductForm, ProductImageFormSet
+from .forms import ProductForm, ProductImageFormSet, OrderForm
 from decimal import Decimal
 
 
@@ -204,15 +204,47 @@ def cart_remove(request, product_id):
     item.delete()
     return redirect("cart")
 
+@login_required
 def cart_add_ajax(request, product_id):
-    cart = Cart(request)
-    product = Product.objects.get(id=product_id)
-    cart.add(product=product, quantity=1)
-    return JsonResponse({'success': True, 'cart_total': len(cart)})
+    product = get_object_or_404(Product, id=product_id)
+    cart, _ = Cart.objects.get_or_create(user=request.user)
+    cart_item, created = CartItem.objects.get_or_create(cart=cart, product=product)
 
+    if not created:
+        cart_item.quantity += 1
+        cart_item.save()
+
+    total_items = sum(item.quantity for item in cart.items.all())
+    return JsonResponse({'success': True, 'cart_total': total_items})
+
+
+@login_required
 def cart_remove_ajax(request, product_id):
-    cart = Cart(request)
-    product = Product.objects.get(id=product_id)
-    cart.remove(product)
-    return JsonResponse({'success': True, 'cart_total': len(cart)})
+    cart = get_object_or_404(Cart, user=request.user)
+    item = get_object_or_404(CartItem, cart=cart, product_id=product_id)
+    item.delete()
+
+    total_items = sum(item.quantity for item in cart.items.all())
+    return JsonResponse({'success': True, 'cart_total': total_items})
+
+@login_required
+def order_create(request):
+    cart, _ = Cart.objects.get_or_create(user=request.user)
+    cart_items = cart.items.select_related('product')
+    total_price = cart.total_price()
+
+    if request.method == 'POST':
+        form = OrderForm(request.POST)
+        if form.is_valid():
+            order = Order.objects.create(user=request.user, cart=cart)
+            # Можно сохранять адрес и телефон, если добавишь поля в модель Order
+            return redirect('order_success', order_id=order.id)
+    else:
+        form = OrderForm()
+
+    return render(request, 'order_create.html', {
+        'cart_items': cart_items,
+        'total_price': total_price,
+        'form': form
+    })
 
