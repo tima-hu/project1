@@ -80,6 +80,25 @@ body {
     background: #0056b3;
 }
 
+.btn-google {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background: #4285F4;
+    color: #fff;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    text-align: center;
+    text-decoration: none;
+    margin: 15px 0;
+    transition: background 0.2s;
+}
+
+.btn-google:hover {
+    background: #357ae8;
+}
+
 .login-register {
     margin-top: 15px;
     font-size: 14px;
@@ -145,6 +164,9 @@ body {
 
             <button type="submit" class="btn-submit">Войти</button>
         </form>
+
+        <!-- Кнопка входа через Google -->
+        <a href="{% url 'social:begin' 'google-oauth2' %}" class="btn-google">Войти через Google</a>
 
         <div class="login-register">
             Нет аккаунта? <a href="{% url 'register' %}">Зарегистрироваться</a>

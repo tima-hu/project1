@@ -8,7 +8,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv("SECRET_KEY", "unsafe-secret-key")  # на проде обязательно задать через env
 
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']  # для продакшена указывай конкретные домены
 
