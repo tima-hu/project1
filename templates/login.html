@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static socialaccount %}
 
 {% block title %}Вход{% endblock %}
 
@@ -16,7 +16,7 @@ body {
 
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
 .login-container {
@@ -37,7 +37,6 @@ body {
     text-align: center;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-
 .login-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 12px 25px rgba(0,0,0,0.15);
@@ -58,7 +57,6 @@ body {
     font-size: 16px;
     transition: border-color 0.2s;
 }
-
 .login-form input:focus {
     border-color: #007bff;
     outline: none;
@@ -75,16 +73,14 @@ body {
     cursor: pointer;
     transition: background 0.2s;
 }
+.btn-submit:hover { background: #0056b3; }
 
-.btn-submit:hover {
-    background: #0056b3;
-}
-
-.btn-google {
+/* ---- Social buttons ---- */
+.btn-google,
+.btn-facebook {
     display: block;
     width: 100%;
     padding: 12px;
-    background: #4285F4;
     color: #fff;
     font-size: 16px;
     border: none;
@@ -92,26 +88,23 @@ body {
     text-align: center;
     text-decoration: none;
     margin: 15px 0;
-    transition: background 0.2s;
+    transition: background 0.2s, transform 0.1s;
 }
+.btn-google { background: #4285F4; }
+.btn-google:hover { background: #357ae8; }
 
-.btn-google:hover {
-    background: #357ae8;
-}
+.btn-facebook { background: #1877F2; }
+.btn-facebook:hover { background: #0d5ec2; }
 
 .login-register {
     margin-top: 15px;
     font-size: 14px;
 }
-
 .login-register a {
     color: #007bff;
     text-decoration: none;
 }
-
-.login-register a:hover {
-    text-decoration: underline;
-}
+.login-register a:hover { text-decoration: underline; }
 
 .form-errors {
     color: #d9534f;
@@ -119,14 +112,12 @@ body {
     margin-bottom: 10px;
     text-align: left;
 }
-
 .message-success {
     color: #28a745;
     font-size: 14px;
     margin-bottom: 10px;
     text-align: center;
 }
-
 .message-error {
     color: #d9534f;
     font-size: 14px;
@@ -149,7 +140,6 @@ body {
 
         <form method="post" class="login-form">
             {% csrf_token %}
-
             {% for field in form %}
                 <div>
                     {{ field.label_tag }}
@@ -161,15 +151,20 @@ body {
                     {% endif %}
                 </div>
             {% endfor %}
-
             <button type="submit" class="btn-submit">Войти</button>
         </form>
 
-        <!-- Кнопка входа через Google -->
-        <a href="{% url 'social:begin' 'google-oauth2' %}" class="btn-google">Войти через Google</a>
+        <!-- Социальные входы -->
+        <a href="{% provider_login_url 'google' %}" class="btn-google">
+            Войти через Google
+        </a>
+         <a href="{% provider_login_url 'facebook' %}" class="btn-facebook">
+            Войти через Facebook 
+        </a>
 
         <div class="login-register">
-            Нет аккаунта? <a href="{% url 'register' %}">Зарегистрироваться</a>
+            Нет аккаунта?
+            <a href="{% url 'register' %}">Зарегистрироваться</a>
         </div>
     </div>
 </div>

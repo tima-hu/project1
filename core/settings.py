@@ -8,7 +8,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv("SECRET_KEY", "unsafe-secret-key")  # на проде обязательно задать через env
 
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']  # для продакшена указывай конкретные домены
 
@@ -31,6 +31,17 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
+    
+    'allauth.socialaccount.providers.google',
+
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.facebook',
+
+    # если используешь rest
+
 
     'main',
     'django_filters',
@@ -39,6 +50,12 @@ INSTALLED_APPS = [
     'channels',
 ]
 
+SITE_ID = 1
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
 # Middleware
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -48,6 +65,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware', 
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -70,11 +88,28 @@ TEMPLATES = [
     },
 ]
 
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
+
+SOCIALACCOUNT_PROVIDERS = {
+    "facebook": {
+        "METHOD": "oauth2",
+        "SCOPE": ["email", "public_profile"],
+        "FIELDS": ["email", "name"],
+        "VERSION": "v17.0",
+        "APP": {
+            "client_id": os.getenv("FB_CLIENT_ID"),
+            "secret": os.getenv("FB_CLIENT_SECRET"),
+            "key": ""
+        }
+    }
+}
+
 # База данных (PostgreSQL)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'project5',
+        'NAME': 'project6',
         'USER': 'postgres',
         'PASSWORD': 'tima62507',
         'HOST': '127.0.0.1',
