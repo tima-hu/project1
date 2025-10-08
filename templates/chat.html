@@ -1,4 +1,7 @@
-<!-- Контейнер чата -->
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
 <div id="chat-container">
   <!-- Верхняя панель -->
   <div id="top-bar">
@@ -8,11 +11,18 @@
   </div>
 
   <!-- Сообщения -->
-  <div id="messages"></div>
+  <div id="messages">
+    {% for msg in messages %}
+      <div class="message {% if msg.user == request.user %}user{% else %}other{% endif %}">
+        {{ msg.user.username }}: {{ msg.message|safe }}
+      </div>
+    {% endfor %}
+  </div>
 
   <!-- Поле ввода -->
   <div id="input-container">
     <input type="text" id="messageInput" placeholder="Напиши сообщение...">
+    <button id="emojiButton">😊</button>
     <button id="sendButton">➤</button>
   </div>
 </div>
@@ -21,89 +31,148 @@
 <div id="sideMenu">
   <h3>Меню</h3>
   <ul>
-    <li>⚙ Настройки</li>
-    <li>😊 Смайлы</li>
-    <li>⌨ Команды</li>
+    <li id="settingsBtn">⚙ Настройки</li>
+    <li id="emojiMenuBtn">😊 Смайлы</li>
+    <li id="commandsBtn">⌨ Команды</li>
   </ul>
+
+  <div id="settingsPanel" class="panel">
+    <h4>Фон чата</h4>
+    <input type="color" id="bgColorPicker" value="#222222">
+  </div>
+
+  <div id="emojiPanel" class="panel">
+    <h4>Выбери смайл</h4>
+    <div class="emoji-grid">
+      <span class="emoji">😀</span>
+      <span class="emoji">😂</span>
+      <span class="emoji">😍</span>
+      <span class="emoji">😎</span>
+      <span class="emoji">😢</span>
+      <span class="emoji">👍</span>
+      <span class="emoji">🔥</span>
+    </div>
+  </div>
+
+  <div id="commandsPanel" class="panel">
+    <h4>Команды</h4>
+    <ul>
+      <li>/clear - Очистить чат</li>
+      <li>/nick [имя] - Изменить ник</li>
+    </ul>
+  </div>
 </div>
 
-<!-- Фон для закрытия меню -->
 <div id="overlay"></div>
 
 <style>
-  body { margin:0; font-family:Arial,sans-serif; background-color:#1c1c1c; color:#fff; }
-  #chat-container { display:flex; flex-direction:column; height:100vh; max-width:500px; margin:auto; background:#2a2a2a; border-radius:12px; overflow:hidden; box-shadow:0 4px 20px rgba(0,0,0,0.4); }
-  #top-bar { display:flex; align-items:center; justify-content:space-between; padding:12px; background:#3a3a3a; font-size:18px; font-weight:bold; }
-  #top-bar button { background:none; border:none; color:#fff; font-size:24px; cursor:pointer; transition:transform 0.2s; margin-left:8px; }
-  #top-bar button:hover { transform:scale(1.2); }
-  #messages { flex:1; padding:15px; overflow-y:auto; background:#222; display:flex; flex-direction:column; gap:8px; }
-  .message { padding:10px 14px; border-radius:12px; max-width:70%; word-wrap:break-word; font-size:14px; line-height:1.4; opacity:0; transform:translateY(10px); animation:fadeIn 0.3s ease forwards; }
-  .message.user { background:#ff4747; align-self:flex-end; border-bottom-right-radius:2px; }
-  .message.other { background:#444; align-self:flex-start; border-bottom-left-radius:2px; }
-  @keyframes fadeIn { to { opacity:1; transform:translateY(0); } }
-  #input-container { display:flex; padding:10px; background:#2f2f2f; }
-  #messageInput { flex:1; padding:10px; border:none; border-radius:8px; outline:none; font-size:14px; }
-  #sendButton { margin-left:10px; padding:10px 14px; border:none; border-radius:8px; background:#ff4747; color:#fff; font-size:16px; cursor:pointer; transition:background 0.3s; }
-  #sendButton:hover { background:#e53e3e; }
-  #sideMenu { position:fixed; top:0; left:-260px; width:240px; height:100%; background:#2b2b2b; color:#fff; padding:20px; transition:left 0.3s ease; z-index:1001; box-shadow:2px 0 10px rgba(0,0,0,0.5); }
-  #sideMenu h3 { margin-top:0; border-bottom:1px solid #444; padding-bottom:10px; }
-  #sideMenu ul { list-style:none; padding:0; }
-  #sideMenu li { margin:15px 0; cursor:pointer; padding:8px; border-radius:6px; transition:background 0.2s; }
-  #sideMenu li:hover { background:#3a3a3a; }
-  #sideMenu.show { left:0; }
-  #overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:none; z-index:1000; }
-  #overlay.show { display:block; }
+body { margin:0; font-family:Arial,sans-serif; background:#1c1c1c; color:#fff; }
+#chat-container { display:flex; flex-direction:column; height:100vh; max-width:500px; margin:auto; background:#2a2a2a; border-radius:12px; overflow:hidden; box-shadow:0 4px 20px rgba(0,0,0,0.4); }
+#top-bar { display:flex; align-items:center; justify-content:space-between; padding:12px; background:#3a3a3a; font-size:18px; font-weight:bold; }
+#top-bar button { background:none; border:none; color:#fff; font-size:24px; cursor:pointer; transition:transform 0.2s; margin-left:8px; }
+#top-bar button:hover { transform:scale(1.2); }
+#messages { flex:1; padding:15px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; background:#222; transition: background 0.3s; }
+.message { padding:10px 14px; border-radius:12px; max-width:70%; word-wrap:break-word; font-size:14px; line-height:1.4; opacity:0; transform:translateY(10px); animation:fadeIn 0.3s ease forwards; }
+.message.user { background:#ff4747; align-self:flex-end; border-bottom-right-radius:2px; }
+.message.other { background:#444; align-self:flex-start; border-bottom-left-radius:2px; }
+@keyframes fadeIn { to { opacity:1; transform:translateY(0); } }
+#input-container { display:flex; padding:10px; background:#2f2f2f; }
+#messageInput { flex:1; padding:10px; border:none; border-radius:8px; outline:none; font-size:14px; background:#3a3a3a; color:#fff; }
+#sendButton, #emojiButton { margin-left:5px; padding:10px 14px; border:none; border-radius:8px; background:#ff4747; color:#fff; font-size:16px; cursor:pointer; transition:background 0.3s; }
+#sendButton:hover, #emojiButton:hover { background:#e53e3e; }
+
+#sideMenu { position:fixed; top:0; left:-260px; width:240px; height:100%; background:#2b2b2b; color:#fff; padding:20px; transition:left 0.3s ease; z-index:1001; box-shadow:2px 0 10px rgba(0,0,0,0.5); }
+#sideMenu h3 { margin-top:0; border-bottom:1px solid #444; padding-bottom:10px; }
+#sideMenu ul { list-style:none; padding:0; }
+#sideMenu li { margin:15px 0; cursor:pointer; padding:8px; border-radius:6px; transition:background 0.2s; }
+#sideMenu li:hover { background:#3a3a3a; }
+#sideMenu.show { left:0; }
+
+.panel { display:none; margin-top:15px; }
+.panel.active { display:block; }
+
+#overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:none; z-index:1000; }
+#overlay.show { display:block; }
+
+.emoji-grid { display:flex; flex-wrap:wrap; gap:5px; }
+.emoji { cursor:pointer; font-size:20px; }
 </style>
 
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
 <script>
-  const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "shopchat-53e69.firebaseapp.com",
-    databaseURL: "https://shopchat-53e69-default-rtdb.firebaseio.com",
-    projectId: "shopchat-53e69",
-    storageBucket: "shopchat-53e69.appspot.com",
-    messagingSenderId: "YOUR_MESSAGING_ID",
-    appId: "YOUR_APP_ID"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
+const menuButton = document.getElementById('menuButton');
+const sideMenu = document.getElementById('sideMenu');
+const overlay = document.getElementById('overlay');
+const sendButton = document.getElementById('sendButton');
+const emojiButton = document.getElementById('emojiButton');
+const messageInput = document.getElementById('messageInput');
+const messages = document.getElementById('messages');
+const shopButton = document.getElementById('shopButton');
 
-  const menuButton = document.getElementById('menuButton');
-  const sideMenu = document.getElementById('sideMenu');
-  const overlay = document.getElementById('overlay');
-  const sendButton = document.getElementById('sendButton');
-  const messageInput = document.getElementById('messageInput');
-  const messages = document.getElementById('messages');
-  const shopButton = document.getElementById('shopButton');
+const settingsBtn = document.getElementById('settingsBtn');
+const emojiMenuBtn = document.getElementById('emojiMenuBtn');
+const commandsBtn = document.getElementById('commandsBtn');
 
-  menuButton.addEventListener('click', () => { sideMenu.classList.toggle('show'); overlay.classList.toggle('show'); });
-  overlay.addEventListener('click', () => { sideMenu.classList.remove('show'); overlay.classList.remove('show'); });
+const settingsPanel = document.getElementById('settingsPanel');
+const emojiPanel = document.getElementById('emojiPanel');
+const commandsPanel = document.getElementById('commandsPanel');
+const bgColorPicker = document.getElementById('bgColorPicker');
 
-  shopButton.addEventListener('click', () => {
-    window.location.href = '/products/';
-  });
+menuButton.addEventListener('click', () => { sideMenu.classList.toggle('show'); overlay.classList.toggle('show'); });
+overlay.addEventListener('click', () => { sideMenu.classList.remove('show'); overlay.classList.remove('show'); settingsPanel.classList.remove('active'); emojiPanel.classList.remove('active'); commandsPanel.classList.remove('active'); });
+shopButton.addEventListener('click', () => { window.location.href = '/products/'; });
 
-  function sendMessage() {
-    const text = messageInput.value.trim();
-    if (!text) return;
-    const msg = { text: text, sender: "Игрок" + Math.floor(Math.random()*1000), timestamp: Date.now() };
-    db.ref("messages").push(msg);
-    messageInput.value = '';
+// Показ панелей
+settingsBtn.addEventListener('click', () => { togglePanel(settingsPanel); });
+emojiMenuBtn.addEventListener('click', () => { togglePanel(emojiPanel); });
+commandsBtn.addEventListener('click', () => { togglePanel(commandsPanel); });
+
+function togglePanel(panel) {
+  [settingsPanel, emojiPanel, commandsPanel].forEach(p => p !== panel ? p.classList.remove('active') : null);
+  panel.classList.toggle('active');
+}
+
+// Изменение фона чата
+bgColorPicker.addEventListener('input', () => { messages.style.background = bgColorPicker.value; });
+
+// Вставка смайлов
+document.querySelectorAll('.emoji').forEach(e => {
+  e.addEventListener('click', () => { messageInput.value += e.textContent; messageInput.focus(); });
+});
+
+// WebSocket
+const ws_scheme = window.location.protocol === "https:" ? "wss" : "ws";
+const chatSocket = new WebSocket(ws_scheme + '://' + window.location.host + '/ws/chat/');
+
+chatSocket.onmessage = function(e) {
+  const data = JSON.parse(e.data);
+  const div = document.createElement("div");
+  div.innerHTML = data.username + ": " + data.message;
+  div.classList.add("message", data.username === "{{ request.user.username }}" ? "user" : "other");
+  messages.appendChild(div);
+  messages.scrollTo({ top: messages.scrollHeight, behavior: "smooth" });
+};
+
+chatSocket.onclose = function(e) { console.error('Chat socket closed unexpectedly'); };
+
+function sendMessage() {
+  const message = messageInput.value.trim();
+  if (message.length === 0) return;
+
+  // Команды
+  if (message.startsWith("/")) {
+    if (message.startsWith("/clear")) { messages.innerHTML = ""; messageInput.value=""; return; }
+    if (message.startsWith("/nick")) {
+      let parts = message.split(" ");
+      if (parts[1]) alert("Ник изменен на " + parts[1]); // Можно добавить смену ника на сервере
+      messageInput.value=""; return;
+    }
   }
 
-  sendButton.addEventListener('click', sendMessage);
-  messageInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+  chatSocket.send(JSON.stringify({ "message": message }));
+  messageInput.value = '';
+}
 
-  db.ref("messages").on("child_added", (snapshot) => {
-    const msg = snapshot.val();
-    const div = document.createElement("div");
-    div.textContent = msg.sender + ": " + msg.text;
-    div.classList.add("message", msg.sender.startsWith("Игрок") ? "user" : "other");
-    messages.appendChild(div);
-    messages.scrollTop = messages.scrollHeight;
-  });
+  sendButton.addEventListener('click', sendMessage);
+  messageInput.addEventListener('keypress', e => { if(e.key==="Enter") sendMessage(); });
 </script>
+{% endblock %}

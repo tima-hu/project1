@@ -6,9 +6,10 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.contrib.auth import update_session_auth_hash
 from django.core.paginator import Paginator
-from .models import Product, ProductImage, Order, OrderItem, Seller, ChatMessage,Cart, CartItem
+from .models import Product, ProductImage, Order, OrderItem, ChatMessage,Cart, CartItem
 from .forms import ProductForm, ProductImageFormSet, OrderForm
 from decimal import Decimal
+from users.models import Seller
 
 
 @login_required

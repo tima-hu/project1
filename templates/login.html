@@ -158,8 +158,8 @@ body {
         <a href="{% provider_login_url 'google' %}" class="btn-google">
             Войти через Google
         </a>
-         <a href="{% provider_login_url 'facebook' %}" class="btn-facebook">
-            Войти через Facebook 
+         {% comment %} <a href="{% provider_login_url 'facebook' %}" class="btn-facebook"> {% endcomment %}
+            {% comment %} Войти через Facebook  {% endcomment %}
         </a>
 
         <div class="login-register">

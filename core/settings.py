@@ -6,24 +6,19 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.getenv("SECRET_KEY", "unsafe-secret-key")  # на проде обязательно задать через env
-
+SECRET_KEY = os.getenv("SECRET_KEY", "unsafe-secret-key")
 DEBUG = True
+ALLOWED_HOSTS = ["*"]  # на проде указать домены
 
-ALLOWED_HOSTS = ['*']  # для продакшена указывай конкретные домены
-
-# CSRF и сессии
 CSRF_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_SECURE = not DEBUG
 
-# CSRF доверенные источники
 CSRF_TRUSTED_ORIGINS = [
-    'http://127.0.0.1:8000',  # обязательно укажи порт
-    'http://localhost:8000',
-    'https://Tima62507.pythonanywhere.com',
+    "http://127.0.0.1:8000",
+    "http://localhost:8000",
+    "https://Tima62507.pythonanywhere.com",
 ]
 
-# Приложения
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -32,22 +27,19 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-    
-    'allauth.socialaccount.providers.google',
 
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.facebook',
 
-    # если используешь rest
-
+    'social_django',
+    'channels',
+    'django_filters',
 
     'main',
-    'django_filters',
     'users',
-    'social_django',  # Google OAuth
-    'channels',
 ]
 
 SITE_ID = 1
@@ -55,22 +47,22 @@ SITE_ID = 1
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
+    'social_core.backends.google.GoogleOAuth2',
 )
-# Middleware
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',  # обязательно до CsrfViewMiddleware
+    'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',  # CSRF защита
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'allauth.account.middleware.AccountMiddleware', 
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'core.urls'
 
-# Шаблоны
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -78,34 +70,20 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
-                'django.template.context_processors.request',  # обязательно для social_django
+                'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'social_django.context_processors.backends',  # для social
+                'social_django.context_processors.backends',
                 'social_django.context_processors.login_redirect',
             ],
         },
     },
 ]
 
+LOGIN_URL = '/users/login/'
 LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/users/login/'
 
-SOCIALACCOUNT_PROVIDERS = {
-    "facebook": {
-        "METHOD": "oauth2",
-        "SCOPE": ["email", "public_profile"],
-        "FIELDS": ["email", "name"],
-        "VERSION": "v17.0",
-        "APP": {
-            "client_id": os.getenv("FB_CLIENT_ID"),
-            "secret": os.getenv("FB_CLIENT_SECRET"),
-            "key": ""
-        }
-    }
-}
-
-# База данных (PostgreSQL)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -117,60 +95,24 @@ DATABASES = {
     }
 }
 
-# Валидаторы пароля
-AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
-]
-
-# Локализация
 LANGUAGE_CODE = 'ru'
 TIME_ZONE = 'Asia/Bishkek'
 USE_I18N = True
 USE_TZ = True
 
-# Статика и медиа
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',
-]
+STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'collected_static'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Сессии
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-
-# Авто ID
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# Пользовательская модель
 AUTH_USER_MODEL = 'users.User'
 
-# OAuth Google
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.getenv("GOOGLE_CLIENT_ID")
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
+ASGI_APPLICATION = 'core.asgi.application'
 
-# Redirect URLs
-LOGIN_URL = '/users/login/'
-LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/users/login/'
-
-# Бэкенды аутентификации
-AUTHENTICATION_BACKENDS = (
-    'social_core.backends.google.GoogleOAuth2',  # Google OAuth
-    'django.contrib.auth.backends.ModelBackend',
-)
-
-# ASGI (для Channels)
-ASGI_APPLICATION = "core.asgi.application"
-
-# Каналы (InMemory)
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer"
-    }
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    },
 }

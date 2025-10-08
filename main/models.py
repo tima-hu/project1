@@ -1,16 +1,11 @@
-from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from core.settings import AUTH_USER_MODEL
-from users.models import Seller
-
-
 
 class ChatMessage(models.Model):
     user = models.ForeignKey(
-        AUTH_USER_MODEL,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="chat_messages"
     )
@@ -20,8 +15,6 @@ class ChatMessage(models.Model):
     def __str__(self):
         return f"{self.user.username}: {self.message[:30]}"
 
-
-
 class Product(models.Model):
     CATEGORY_CHOICES = [
         ('electronics', 'Электроника'),
@@ -30,11 +23,10 @@ class Product(models.Model):
         ('home', 'Товары для дома'),
         ('other', 'Прочее'),
     ]
-
-    name = models.CharField(max_length=255, verbose_name="Название")
-    description = models.TextField(verbose_name="Описание", blank=True, null=True)
-    category = models.CharField(max_length=100, choices=CATEGORY_CHOICES, verbose_name="Категория")
-    price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Цена")
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    category = models.CharField(max_length=100, choices=CATEGORY_CHOICES)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
     image = models.ImageField(upload_to='products/', blank=True, null=True)
     seller = models.ForeignKey("users.Seller", on_delete=models.CASCADE, related_name="products")
     is_active = models.BooleanField(default=True)
@@ -42,27 +34,13 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
-
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, related_name='images', on_delete=models.CASCADE)
     image = models.ImageField(upload_to='product_images/')
     alt_text = models.CharField(max_length=255, blank=True)
 
-    def __str__(self):
-        return f"Image for {self.product.name}"
-
-
-
-# models.py
-from django.db import models
-from django.conf import settings
-
 class Cart(models.Model):
-    user = models.OneToOneField(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="cart"
-    )
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="cart")
     created_at = models.DateTimeField(auto_now_add=True)
 
     def total_price(self):
@@ -74,37 +52,22 @@ class Cart(models.Model):
     def __str__(self):
         return f"Корзина {self.user}"
 
-
 class CartItem(models.Model):
-    cart = models.ForeignKey(
-        Cart,
-        on_delete=models.CASCADE,
-        related_name="items"
-    )
-    product = models.ForeignKey(
-        'Product',
-        on_delete=models.CASCADE
-    )
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name="items")
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
 
     def total_price(self):
         return self.product.price * self.quantity
 
-    def __str__(self):
-        return f"{self.product.name} ({self.quantity})"
-
-
-
-
 class Order(models.Model):
-    user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders')
     cart = models.OneToOneField(Cart, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=50, default='processing')
 
     def __str__(self):
         return f"Order #{self.id} by {self.user.username}"
-
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
@@ -115,11 +78,10 @@ class OrderItem(models.Model):
     def __str__(self):
         return f"{self.quantity} x {self.product.name}"
 
-
-@receiver(post_save, sender=AUTH_USER_MODEL)
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_seller_for_new_user(sender, instance, created, **kwargs):
+    from users.models import Seller
     if created:
-        Seller.objects.get_or_create(
-            user=instance,
-            defaults={"store_name": f"Магазин {instance.username}"}
-        )
+        Seller.objects.get_or_create(user=instance, defaults={"store_name": f"Магазин {instance.username}"})
+
+
